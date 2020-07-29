@@ -6,7 +6,7 @@
 \usage{
 plot_bubble_for_genes_per_cluster(
   object,
-  cluster.type = c("louvain", "walktrap", "kmeans"),
+  cluster.type = c("louvain", "kmeans"),
   gene_list = c(),
   point.color1 = "orange",
   point.color2 = "firebrick",
@@ -15,7 +15,16 @@ plot_bubble_for_genes_per_cluster(
   axist.x.font.size = 12,
   show.percent = FALSE,
   log = T,
-  font.size.in.bubble = 2
+  font.size.in.bubble = 2,
+  IsApplyClustering = TRUE,
+  IsClusterByRow = TRUE,
+  clustering_method = "complete",
+  IsClusterByColumn = TRUE,
+  IsCustomOrder = FALSE,
+  IsCustomOrderByRow = FALSE,
+  IsCustomOrderByColumn = FALSE,
+  row.custom.order = "",
+  column.custom.order = ""
 )
 }
 \arguments{
@@ -40,6 +49,24 @@ plot_bubble_for_genes_per_cluster(
 \item{log}{is logical. If TRUE, the log expression will be applied.}
 
 \item{font.size.in.bubble}{The font size inside the bubble. Default 2}
+
+\item{IsApplyClustering}{is logical. If TRUE, the bubble plot will be clustered by using HCL.}
+
+\item{IsClusterByRow}{is logical. If TRUE, clustering by row.}
+
+\item{clustering_method}{The clustering method. Default 'complete'}
+
+\item{IsClusterByColumn}{is logical. If TRUE, clustering by column.}
+
+\item{IsCustomOrder}{is logical, If TRUE, the input custom order of row and column will be used.}
+
+\item{IsCustomOrderByRow}{is logical, If TRUE, row will be ordered by the custom input.}
+
+\item{IsCustomOrderByColumn}{is logical, If TRUE, column will be ordered by the custom input.}
+
+\item{row.custom.order}{is the vector of custom row names.}
+
+\item{column.custom.order}{is the vector of custom column names.}
 }
 \description{
 Plot bubble-plot for gene expression per cluster

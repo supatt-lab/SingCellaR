@@ -49,4 +49,5 @@
 #' @importFrom destiny eigenvectors
 #' @importFrom AUCell AUCell_buildRankings
 #' @importFrom AUCell AUCell_calcAUC 
+#' @importFrom reshape2 dcast
 NULL

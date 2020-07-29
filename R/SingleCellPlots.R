@@ -3752,12 +3752,30 @@ plot_forceDirectedGraph_label_by_AUCell_score<-function(object,AUCell_gene_set_n
 #' @param  show.percent is logical. If TRUE, the percentage will be displayed.
 #' @param  log is logical. If TRUE, the log expression will be applied.
 #' @param  font.size.in.bubble The font size inside the bubble. Default 2
+#' @param  IsApplyClustering is logical. If TRUE, the bubble plot will be clustered by using HCL.
+#' @param  clustering_method The clustering method. Default 'complete'
+#' @param  IsClusterByRow is logical. If TRUE, clustering by row.
+#' @param  IsClusterByColumn is logical. If TRUE, clustering by column.
+#' @param  IsCustomOrder is logical, If TRUE, the input custom order of row and column will be used.
+#' @param  IsCustomOrderByRow is logical, If TRUE, row will be ordered by the custom input.
+#' @param  IsCustomOrderByColumn is logical, If TRUE, column will be ordered by the custom input.
+#' @param  row.custom.order is the vector of custom row names.
+#' @param  column.custom.order is the vector of custom column names.
 #' @export
 
-plot_bubble_for_genes_per_cluster<-function(object,cluster.type=c("louvain","walktrap","kmeans"),
+plot_bubble_for_genes_per_cluster<-function(object,cluster.type=c("louvain","kmeans"),
                                             gene_list=c(),point.color1="orange",point.color2="firebrick",
                                             buble.scale=6,gene.font.size=12,axist.x.font.size=12,
-                                            show.percent=FALSE,log=T,font.size.in.bubble=2){
+                                            show.percent=FALSE,log=T,font.size.in.bubble=2,
+                                            IsApplyClustering=TRUE,
+                                            IsClusterByRow=TRUE,
+                                            clustering_method="complete",
+                                            IsClusterByColumn=TRUE,
+                                            IsCustomOrder=FALSE,
+                                            IsCustomOrderByRow=FALSE,
+                                            IsCustomOrderByColumn=FALSE,
+                                            row.custom.order="",
+                                            column.custom.order=""){
   
   if(!is(object,"SingCellaR")){
     stop("Need to initialize the SingCellaR object")
@@ -3765,7 +3783,6 @@ plot_bubble_for_genes_per_cluster<-function(object,cluster.type=c("louvain","wal
   if(length(gene_list)==0){
     stop("Required list of genes!")
   }
-  
   clusters.info<-get_clusters(object)
   cluster.type <- match.arg(cluster.type)
   ####################################
@@ -3808,20 +3825,96 @@ plot_bubble_for_genes_per_cluster<-function(object,cluster.type=c("louvain","wal
       my.new.dat<-rbind(my.new.dat,my.f)
     }
   }
-    p<-ggplot(my.new.dat, aes(x=cluster, y=gene)) + 
-    geom_point(aes(size=percent_express,colour = Average_expression)) + 
+  
+  if(IsCustomOrder==TRUE & IsApplyClustering==FALSE){
+    if(IsCustomOrderByRow==TRUE & IsCustomOrderByColumn==FALSE){
+      mm<- reshape2::dcast(my.new.dat, gene ~ cluster,value.var="Average_expression")
+      rownames(mm)<-mm$gene
+      mm<-mm[,-c(1)]
+      ####################
+      hr <- hclust(as.dist(1-cor(t(mm), method="pearson")), method= clustering_method)
+      hr.dendrogram<- as.dendrogram(hr)
+      Rowv  = Matrix::rowMeans(mm, na.rm = T)
+      hr.dendrogram  = reorder(hr.dendrogram, Rowv)
+      level_order_x <- colnames(mm)
+      level_order_y <- row.custom.order
+      
+    }else if(IsCustomOrderByRow==FALSE & IsCustomOrderByColumn==TRUE){
+      mm<- reshape2::dcast(my.new.dat, gene ~ cluster,value.var="Average_expression")
+      rownames(mm)<-mm$gene
+      mm<-mm[,-c(1)]
+      ####################
+      hc <- hclust(as.dist(1-cor(mm, method="pearson")), method= clustering_method)
+      hc.dendrogram<- as.dendrogram(hc)
+      Colr  = Matrix::colMeans(mm, na.rm = T)
+      hc.dendrogram  = reorder(hc.dendrogram, Colr)
+      level_order_x <- column.custom.order
+      level_order_y <- rownames(mm)
+      
+    }else if(IsCustomOrderByRow==TRUE & IsCustomOrderByColumn==TRUE){
+      level_order_x <- column.custom.order
+      level_order_y <-row.custom.order
+    }
+    p<-ggplot(my.new.dat, aes(x=factor(cluster,level = level_order_x), y=factor(gene,level = level_order_y)))
+    
+  }else if(IsCustomOrder==FALSE & IsApplyClustering==TRUE){
+    mm<- reshape2::dcast(my.new.dat, gene ~ cluster,value.var="Average_expression")
+    rownames(mm)<-mm$gene
+    mm<-mm[,-c(1)]
+    ###################################################
+    if(IsClusterByRow==TRUE & IsClusterByColumn==TRUE){
+      hr <- hclust(as.dist(1-cor(t(mm), method="pearson")), method= clustering_method)
+      hc <- hclust(as.dist(1-cor(mm, method="pearson")), method= clustering_method)
+      hc.dendrogram<- as.dendrogram(hc)
+      hr.dendrogram<- as.dendrogram(hr)
+      #########re-order dendograms#########
+      Rowv  = Matrix::rowMeans(mm, na.rm = T)
+      hr.dendrogram  = reorder(hr.dendrogram, Rowv)
+      
+      Colr  = Matrix::colMeans(mm, na.rm = T)
+      hc.dendrogram  = reorder(hc.dendrogram, Colr)
+      #####################################
+      level_order_x <-labels(hc.dendrogram)
+      level_order_y <-labels(hr.dendrogram)
+      
+    }else if(IsClusterByRow==TRUE & IsClusterByColumn==FALSE){
+      hr <- hclust(as.dist(1-cor(t(mm), method="pearson")), method= clustering_method)
+      hr.dendrogram<- as.dendrogram(hr)
+      Rowv  = Matrix::rowMeans(mm, na.rm = T)
+      hr.dendrogram  = reorder(hr.dendrogram, Rowv)
+      level_order_x <- colnames(mm)
+      level_order_y <-labels(hr.dendrogram)
+      
+    }else if(IsClusterByRow==FALSE & IsClusterByColumn==TRUE){
+      
+      hc <- hclust(as.dist(1-cor(mm, method="pearson")), method= clustering_method)
+      hc.dendrogram<- as.dendrogram(hc)
+      Colr  = Matrix::colMeans(mm, na.rm = T)
+      hc.dendrogram  = reorder(hc.dendrogram, Colr)
+      level_order_x <- labels(hc.dendrogram)
+      level_order_y <- rownames(mm)
+      
+    }
+    p<-ggplot(my.new.dat, aes(x=factor(cluster,level = level_order_x), y=factor(gene,level = level_order_y)))
+    
+  }else if(IsCustomOrder==FALSE & IsApplyClustering==FALSE){
+    p<-ggplot(my.new.dat, aes(x=cluster, y=gene))
+  }else{
+    stop("Please check if only IsCustomOrder==TRUE or IsApplyClustering==TRUE")
+  }
+  p<-p+geom_point(aes(size=percent_express,colour = Average_expression)) + 
     scale_size(range = c(0, buble.scale))+ 
     scale_colour_gradientn(colours = c("gray87",point.color1,point.color2),values=c(0,0.01,1))+
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-              panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+          panel.background = element_blank(), axis.line = element_line(colour = "black"))+
     theme(axis.text.y = element_text(face="italic",size=gene.font.size),axis.title.y = element_blank())+
     theme(axis.text.x = element_text(face="bold",size=axist.x.font.size),axis.title.x = element_blank())+
     guides(size = guide_legend(title = 'Expressing cells (%)',order=2))
-    
-    if(show.percent==TRUE){
-      p<-p+geom_text(aes(label=percent_express),size=font.size.in.bubble)
-    }
-    return(p)
+  
+  if(show.percent==TRUE){
+    p<-p+geom_text(aes(label=percent_express),size=font.size.in.bubble)
+  }
+  return(p)
 }
 
 #' Plot bubble-plot for gene expression per custom group of cells
@@ -3836,12 +3929,30 @@ plot_bubble_for_genes_per_cluster<-function(object,cluster.type=c("louvain","wal
 #' @param  show.percent is logical. If TRUE, the percentage will be displayed.
 #' @param  log is logical. If TRUE, the log expression will be applied.
 #' @param  font.size.in.bubble The font size inside the bubble. Default 2
+#' @param  IsApplyClustering is logical. If TRUE, the bubble plot will be clustered by using HCL.
+#' @param  clustering_method The clustering method. Default 'complete'
+#' @param  IsClusterByRow is logical. If TRUE, clustering by row.
+#' @param  IsClusterByColumn is logical. If TRUE, clustering by column.
+#' @param  IsCustomOrder is logical, If TRUE, the input custom order of row and column will be used.
+#' @param  IsCustomOrderByRow is logical, If TRUE, row will be ordered by the custom input.
+#' @param  IsCustomOrderByColumn is logical, If TRUE, column will be ordered by the custom input.
+#' @param  row.custom.order is the vector of custom row names.
+#' @param  column.custom.order is the vector of custom column names.
 #' @export
 
 plot_bubble_for_genes_per_custom_group_of_cells<-function(object,custom_group_of_cells=list(),
-                                            gene_list=c(),point.color1="orange",point.color2="firebrick",
-                                            buble.scale=6,gene.font.size=12,axist.x.font.size=12,font.size.in.bubble=2,
-                                            show.percent=FALSE,log=T){
+                                                          gene_list=c(),point.color1="orange",point.color2="firebrick",
+                                                          buble.scale=6,gene.font.size=12,axist.x.font.size=12,font.size.in.bubble=2,
+                                                          show.percent=FALSE,log=T,
+                                                          IsApplyClustering=TRUE,
+                                                          IsClusterByRow=TRUE,
+                                                          clustering_method="complete",
+                                                          IsClusterByColumn=TRUE,
+                                                          IsCustomOrder=FALSE,
+                                                          IsCustomOrderByRow=FALSE,
+                                                          IsCustomOrderByColumn=FALSE,
+                                                          row.custom.order="",
+                                                          column.custom.order=""){
   
   if(!is(object,"SingCellaR")){
     stop("Need to initialize the SingCellaR object")
@@ -3874,8 +3985,83 @@ plot_bubble_for_genes_per_custom_group_of_cells<-function(object,custom_group_of
       my.new.dat<-rbind(my.new.dat,my.f)
     }
   }
-  p<-ggplot(my.new.dat, aes(x=cluster, y=gene)) + 
-    geom_point(aes(size=percent_express,colour = Average_expression)) + 
+  if(IsCustomOrder==TRUE & IsApplyClustering==FALSE){
+    if(IsCustomOrderByRow==TRUE & IsCustomOrderByColumn==FALSE){
+      mm<- reshape2::dcast(my.new.dat, gene ~ cluster,value.var="Average_expression")
+      rownames(mm)<-mm$gene
+      mm<-mm[,-c(1)]
+      ####################
+      hr <- hclust(as.dist(1-cor(t(mm), method="pearson")), method= clustering_method)
+      hr.dendrogram<- as.dendrogram(hr)
+      Rowv  = Matrix::rowMeans(mm, na.rm = T)
+      hr.dendrogram  = reorder(hr.dendrogram, Rowv)
+      level_order_x <- colnames(mm)
+      level_order_y <- row.custom.order
+      
+    }else if(IsCustomOrderByRow==FALSE & IsCustomOrderByColumn==TRUE){
+      mm<- reshape2::dcast(my.new.dat, gene ~ cluster,value.var="Average_expression")
+      rownames(mm)<-mm$gene
+      mm<-mm[,-c(1)]
+      ####################
+      hc <- hclust(as.dist(1-cor(mm, method="pearson")), method= clustering_method)
+      hc.dendrogram<- as.dendrogram(hc)
+      Colr  = Matrix::colMeans(mm, na.rm = T)
+      hc.dendrogram  = reorder(hc.dendrogram, Colr)
+      level_order_x <- column.custom.order
+      level_order_y <- rownames(mm)
+      
+    }else if(IsCustomOrderByRow==TRUE & IsCustomOrderByColumn==TRUE){
+      level_order_x <- column.custom.order
+      level_order_y <-row.custom.order
+    }
+    p<-ggplot(my.new.dat, aes(x=factor(cluster,level = level_order_x), y=factor(gene,level = level_order_y)))
+    
+  }else if(IsCustomOrder==FALSE & IsApplyClustering==TRUE){
+    mm<- reshape2::dcast(my.new.dat, gene ~ cluster,value.var="Average_expression")
+    rownames(mm)<-mm$gene
+    mm<-mm[,-c(1)]
+    ###################################################
+    if(IsClusterByRow==TRUE & IsClusterByColumn==TRUE){
+      hr <- hclust(as.dist(1-cor(t(mm), method="pearson")), method= clustering_method)
+      hc <- hclust(as.dist(1-cor(mm, method="pearson")), method= clustering_method)
+      hc.dendrogram<- as.dendrogram(hc)
+      hr.dendrogram<- as.dendrogram(hr)
+      #########re-order dendograms#########
+      Rowv  = Matrix::rowMeans(mm, na.rm = T)
+      hr.dendrogram  = reorder(hr.dendrogram, Rowv)
+      
+      Colr  = Matrix::colMeans(mm, na.rm = T)
+      hc.dendrogram  = reorder(hc.dendrogram, Colr)
+      #####################################
+      level_order_x <-labels(hc.dendrogram)
+      level_order_y <-labels(hr.dendrogram)
+      
+    }else if(IsClusterByRow==TRUE & IsClusterByColumn==FALSE){
+      hr <- hclust(as.dist(1-cor(t(mm), method="pearson")), method= clustering_method)
+      hr.dendrogram<- as.dendrogram(hr)
+      Rowv  = Matrix::rowMeans(mm, na.rm = T)
+      hr.dendrogram  = reorder(hr.dendrogram, Rowv)
+      level_order_x <- colnames(mm)
+      level_order_y <-labels(hr.dendrogram)
+      
+    }else if(IsClusterByRow==FALSE & IsClusterByColumn==TRUE){
+      
+      hc <- hclust(as.dist(1-cor(mm, method="pearson")), method= clustering_method)
+      hc.dendrogram<- as.dendrogram(hc)
+      Colr  = Matrix::colMeans(mm, na.rm = T)
+      hc.dendrogram  = reorder(hc.dendrogram, Colr)
+      level_order_x <- labels(hc.dendrogram)
+      level_order_y <- rownames(mm)
+      
+    }
+    p<-ggplot(my.new.dat, aes(x=factor(cluster,level = level_order_x), y=factor(gene,level = level_order_y)))
+    
+  }else if(IsCustomOrder==FALSE & IsApplyClustering==FALSE){
+    p<-ggplot(my.new.dat, aes(x=cluster, y=gene))
+  }else{
+    stop("Please check if only IsCustomOrder==TRUE or IsApplyClustering==TRUE")
+  }
+  p<-p+geom_point(aes(size=percent_express,colour = Average_expression)) + 
     scale_size(range = c(0, buble.scale))+ 
     scale_colour_gradientn(colours = c("gray87",point.color1,point.color2),values=c(0,0.01,1))+
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -3889,6 +4075,7 @@ plot_bubble_for_genes_per_custom_group_of_cells<-function(object,custom_group_of
   }
   return(p)
 }
+
 
 #' Plot violin-plot for gene expression per custom group of cells
 #' @param  object The SingCellaR object.

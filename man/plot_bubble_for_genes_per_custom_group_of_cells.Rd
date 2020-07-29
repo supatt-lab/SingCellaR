@@ -15,7 +15,16 @@ plot_bubble_for_genes_per_custom_group_of_cells(
   axist.x.font.size = 12,
   font.size.in.bubble = 2,
   show.percent = FALSE,
-  log = T
+  log = T,
+  IsApplyClustering = TRUE,
+  IsClusterByRow = TRUE,
+  clustering_method = "complete",
+  IsClusterByColumn = TRUE,
+  IsCustomOrder = FALSE,
+  IsCustomOrderByRow = FALSE,
+  IsCustomOrderByColumn = FALSE,
+  row.custom.order = "",
+  column.custom.order = ""
 )
 }
 \arguments{
@@ -40,6 +49,24 @@ plot_bubble_for_genes_per_custom_group_of_cells(
 \item{show.percent}{is logical. If TRUE, the percentage will be displayed.}
 
 \item{log}{is logical. If TRUE, the log expression will be applied.}
+
+\item{IsApplyClustering}{is logical. If TRUE, the bubble plot will be clustered by using HCL.}
+
+\item{IsClusterByRow}{is logical. If TRUE, clustering by row.}
+
+\item{clustering_method}{The clustering method. Default 'complete'}
+
+\item{IsClusterByColumn}{is logical. If TRUE, clustering by column.}
+
+\item{IsCustomOrder}{is logical, If TRUE, the input custom order of row and column will be used.}
+
+\item{IsCustomOrderByRow}{is logical, If TRUE, row will be ordered by the custom input.}
+
+\item{IsCustomOrderByColumn}{is logical, If TRUE, column will be ordered by the custom input.}
+
+\item{row.custom.order}{is the vector of custom row names.}
+
+\item{column.custom.order}{is the vector of custom column names.}
 }
 \description{
 Plot bubble-plot for gene expression per custom group of cells
