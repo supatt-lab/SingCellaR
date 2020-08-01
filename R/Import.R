@@ -18,7 +18,6 @@
 #' @import RColorBrewer 
 #' @import igraph
 #' @import pheatmap 
-#' @import NNLM
 #' @import SummarizedExperiment
 #' @import SingleCellExperiment
 #' @import ComplexHeatmap
