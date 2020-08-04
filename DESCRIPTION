@@ -13,7 +13,7 @@ Imports: SingleCellExperiment, SummarizedExperiment, Matrix, bigmemory,
         cccd, ggpubr, statmod, uwot, data.table, reshape2, pbapply,
         fgsea, limma, RANN, ComplexHeatmap, circlize, threejs,
         RColorBrewer, igraph, pheatmap, Rcpp (>= 1.0.4.6)
-suggests: NNLM, Seurat (>=3.1.5), liger (>=0.5.0), harmony (>=1.0)
+suggests: NNLM, Seurat (>=3.1.5), liger (>=0.5.0), harmony (>=1.0), sva
 LinkingTo: Rcpp, RcppArmadillo, RcppAnnoy, RcppParallel
 Collate: 'RcppExports.R' 'Import.R' 'SingleCellClasses.R'
         'SingleCellGenerics.R' 'SingleCellPlots.R' 'SingleCellRNASeq.R'
