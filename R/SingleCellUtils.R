@@ -108,12 +108,7 @@ identifyKNN <- function(Xmat,metric=c("euclidean","cosine"),n.neighbors=30,n_tre
   if(n_threads > 1){
     
     print(paste("Searching Annoy index using ",n_threads," threads search_k  =",n.neighbors*100,sep=""))
-    if(metric=="euclidean"){
-      res <- annoy_euclidean_nns(index_file,Xmat,n.neighbors, n.neighbors*100, grain_size = 1,verbose = FALSE)
-    }
-    if(metric=="cosine"){
-      res <- annoy_cosine_nns(index_file,Xmat,n.neighbors, n.neighbors*100, grain_size = 1,verbose = FALSE)
-    }
+    res <- annoy_search_parallel_cpp(index_file,Xmat,n.neighbors, n.neighbors*100,metric,grain_size = 1,n_threads=n_threads)
     knn<-res$item+1
   }else{
     print(paste("Searching Annoy index, search_k = ", n.neighbors*100),sep="")

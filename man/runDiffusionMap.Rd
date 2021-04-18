@@ -8,7 +8,7 @@ runDiffusionMap(
   object,
   dim_reduction_method = c("pca", "nnmf"),
   useIntegrativeEmbeddings = F,
-  integrative_method = c("combat", "seurat", "harmony", "supervised_harmony", "liger"),
+  integrative_method = c("combat", "seurat", "harmony", "supervised_harmony"),
   n.dims.use = 50,
   n.dims.embed = 3,
   n.neighbors = 30,

@@ -8,7 +8,7 @@ identifyClusters(
   object,
   dim_reduction_method = c("pca", "nnmf", "lsi"),
   useIntegrativeEmbeddings = FALSE,
-  integrative_method = c("combat", "seurat", "harmony", "supervised_harmony", "liger"),
+  integrative_method = c("combat", "seurat", "harmony", "supervised_harmony"),
   n.dims.use = 30,
   n.neighbors = 30,
   knn.n_trees = 50,

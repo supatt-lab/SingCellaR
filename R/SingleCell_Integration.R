@@ -5,104 +5,171 @@
 #' 
 
 preprocess_integration <- function(object,mitochondiral_genes_start_with="MT-"){
-  
-  objName <- deparse(substitute(object))
-  if(!is(object,"SingCellaR_Int")){
-    stop("Need to initialize the SingCellaR_Int object")
-  }
-  
-  data.dir<-object@dir_path_SingCellR_object_files
-  
-  if (! dir.exists(data.dir)){
-    stop("Directory provided does not exist")
-  }
-  input.files<-object@SingCellR_object_files
-  if(length(input.files)==1){
-    stop("Need more SingCellaR object files as the input!")
-  }else{
-    #print("Combining Genes..")
-    
-    pb <- txtProgressBar(max = length(input.files), style = 3)
-    
-    #EXP.genes<-list()
-    #for(n in 1:length(input.files)){
-    #  Sys.sleep(0.5);
-    #  file.name  <-input.files[n]
-    #  local.obj <-local(get(load(file=file.name)))
-    #  local.exp.genes<-get_genes_metadata(local.obj)
-    #  local.exp.genes<-subset(local.exp.genes,IsExpress==TRUE)
-    #  local.genes<-rownames(local.exp.genes)
-    #  EXP.genes[[n]]<-local.genes
-    #  setTxtProgressBar(pb, pb$getVal()+1)
-    #}
-    #UNION.genes<-unique(unlist(EXP.genes))
-    ###############################################
-    print("Combining variable/marker genes, clusters info, and UMIs..")
-    ###############################################
-    file.name.1  <-paste(data.dir,input.files[1],sep="/")
-    
-    local.obj.1 <-local(get(load(file=file.name.1)))
-    local.cells.1<-get_cells_annotation(local.obj.1)
-    local.cells.1<-subset(local.cells.1,IsPassed==T)
-    #local.obj.1<-local.obj.1[UNION.genes,as.character(local.cells.1$Cell)]
-    local.obj.1<-local.obj.1[,as.character(local.cells.1$Cell)]
-    local.vargenes.1<-get_genes_metadata(local.obj.1)
-    local.vargenes.1<-subset(local.vargenes.1,IsExpress==T & IsVarGenes==T)
-    local.vargenes.1<-rownames(local.vargenes.1)
-    
-    int.umi<-get_umi_count(local.obj.1)
-    set.name<-rep(1,ncol(int.umi))
-    
-    var.genes<-list()
-    var.genes[[1]]<-local.vargenes.1
-    ########get cluster and marker genes############
-    cluster.info<-list()
-    cluster.info[[1]]<-get_clusters(local.obj.1)
-    
-    marker.genes<-list()
-    marker.genes [[1]]<-get_marker_genes(local.obj.1)
-    
-    
-    for(i in 2:length(input.files)){
-      Sys.sleep(0.5);
-      file.name  <-paste(data.dir,input.files[i],sep="/")
-      
-      local.obj <-local(get(load(file=file.name)))
-      local.cells<-get_cells_annotation(local.obj)
-      local.cells<-subset(local.cells,IsPassed==T)
-      #local.obj<-local.obj[UNION.genes,as.character(local.cells$Cell)]
-      local.obj<-local.obj[,as.character(local.cells$Cell)]
-      #######get variable genes####
-      local.vargenes<-get_genes_metadata(local.obj)
-      local.vargenes<-subset(local.vargenes,IsExpress==T & IsVarGenes==T)
-      local.vargenes<-rownames(local.vargenes)
-      var.genes[[i]]<-local.vargenes
-      #############################
-      cluster.info[[i]]<-get_clusters(local.obj)
-      marker.genes [[i]]<-get_marker_genes(local.obj)
-      #############################
-      local.umi<-get_umi_count(local.obj)
-      int.umi<-cbind(int.umi,local.umi)
-      set.name.x<-rep(i,ncol(local.umi))
-      set.name<-append(set.name,set.name.x)
-      setTxtProgressBar(pb, pb$getVal()+1)
-    }
-  }
-  
-  sce<-SingleCellExperiment(assays = list(counts = int.umi))
-  object <- new("SingCellaR_Int", sce, dir_path_SingCellR_object_files=data.dir,SingCellR_object_files=input.files)
-  object@Variable.genes<-var.genes
-  object@marker.genes<-marker.genes
-  object@SingCellaR.individual.clusters<-cluster.info
-  ################################
-  process_cells_annotation(object,mitochondiral_genes_start_with=mitochondiral_genes_start_with)
-  object@meta.data<-cbind(get_cells_annotation(object),data.frame(data_set=set.name))
-  assign(objName,object,envir=parent.frame())
-  invisible(1)
-  print("The integrated sparse matrix is created.")
-
+	
+	objName <- deparse(substitute(object))
+	if(!is(object,"SingCellaR_Int")){
+		stop("Need to initialize the SingCellaR_Int object")
+	}
+	
+	data.dir<-object@dir_path_SingCellR_object_files
+	
+	if (! dir.exists(data.dir)){
+		stop("Directory provided does not exist")
+	}
+	input.files<-object@SingCellR_object_files
+	if(length(input.files)==1){
+		stop("Need more SingCellaR object files as the input!")
+	}else{
+		#print("Combining Genes..")
+		
+		pb <- txtProgressBar(max = length(input.files), style = 3)
+		
+		#EXP.genes<-list()
+		#for(n in 1:length(input.files)){
+		#  Sys.sleep(0.5);
+		#  file.name  <-input.files[n]
+		#  local.obj <-local(get(load(file=file.name)))
+		#  local.exp.genes<-get_genes_metadata(local.obj)
+		#  local.exp.genes<-subset(local.exp.genes,IsExpress==TRUE)
+		#  local.genes<-rownames(local.exp.genes)
+		#  EXP.genes[[n]]<-local.genes
+		#  setTxtProgressBar(pb, pb$getVal()+1)
+		#}
+		#UNION.genes<-unique(unlist(EXP.genes))
+		###############################################
+		print("Combining variable/marker genes, clusters info, and UMIs..")
+		###############################################
+		file.name.1  <-paste(data.dir,input.files[1],sep="/")
+		
+		local.obj.1 <-local(get(load(file=file.name.1)))
+		local.cells.1<-get_cells_annotation(local.obj.1)
+		local.cells.1<-subset(local.cells.1,IsPassed==T)
+		#local.obj.1<-local.obj.1[UNION.genes,as.character(local.cells.1$Cell)]
+		#local.obj.1<-local.obj.1[,as.character(local.cells.1$Cell)]
+		local.vargenes.1<-get_genes_metadata(local.obj.1)
+		local.vargenes.1<-subset(local.vargenes.1,IsExpress==T & IsVarGenes==T)
+		local.vargenes.1<-rownames(local.vargenes.1)
+		
+		int.umi<-get_umi_count(local.obj.1)
+		int.umi<-int.umi[,as.character(local.cells.1$Cell)]
+		set.name<-rep(1,ncol(int.umi))
+		
+		var.genes<-list()
+		var.genes[[1]]<-local.vargenes.1
+		########get cluster and marker genes############
+		cluster.info<-list()
+		cluster.info[[1]]<-get_clusters(local.obj.1)
+		
+		marker.genes<-list()
+		marker.genes [[1]]<-get_marker_genes(local.obj.1)
+		
+		
+		for(i in 2:length(input.files)){
+			Sys.sleep(0.5);
+			file.name  <-paste(data.dir,input.files[i],sep="/")
+			
+			local.obj <-local(get(load(file=file.name)))
+			local.cells<-get_cells_annotation(local.obj)
+			local.cells<-subset(local.cells,IsPassed==T)
+			#local.obj<-local.obj[UNION.genes,as.character(local.cells$Cell)]
+			#local.obj<-local.obj[,as.character(local.cells$Cell)]
+			#######get variable genes####
+			local.vargenes<-get_genes_metadata(local.obj)
+			local.vargenes<-subset(local.vargenes,IsExpress==T & IsVarGenes==T)
+			local.vargenes<-rownames(local.vargenes)
+			var.genes[[i]]<-local.vargenes
+			#############################
+			cluster.info[[i]]<-get_clusters(local.obj)
+			marker.genes [[i]]<-get_marker_genes(local.obj)
+			#############################
+			local.umi<-get_umi_count(local.obj)
+			local.umi<-local.umi[,as.character(local.cells$Cell)]
+			int.umi<-cbind(int.umi,local.umi)
+			set.name.x<-rep(i,ncol(local.umi))
+			set.name<-append(set.name,set.name.x)
+			setTxtProgressBar(pb, pb$getVal()+1)
+		}
+	}
+	
+	sce<-SingleCellExperiment(assays = list(counts = int.umi))
+	object <- new("SingCellaR_Int", sce, dir_path_SingCellR_object_files=data.dir,SingCellR_object_files=input.files)
+	object@Variable.genes<-var.genes
+	object@marker.genes<-marker.genes
+	object@SingCellaR.individual.clusters<-cluster.info
+	################################
+	process_cells_annotation(object,mitochondiral_genes_start_with=mitochondiral_genes_start_with)
+	object@meta.data<-cbind(get_cells_annotation(object),data.frame(data_set=set.name))
+	assign(objName,object,envir=parent.frame())
+	invisible(1)
+	print("The integrated sparse matrix is created.")
+	
 }
 
+preprocess_integration_for_ADT <- function(object){
+	
+	objName <- deparse(substitute(object))
+	
+	if(!is(object,"SingCellaR_Int")){
+		stop("Need to initialize the SingCellaR_Int object")
+	}
+	data.dir<-object@dir_path_SingCellR_object_files
+	
+	if (! dir.exists(data.dir)){
+		stop("Directory provided does not exist")
+	}
+	
+	input.files<-object@SingCellR_object_files
+	if(length(input.files)==1){
+		stop("Need more SingCellaR object files as the input!")
+	}else{
+		pb <- txtProgressBar(max = length(input.files), style = 3)
+		###############################################
+		print("Checking number of rows..")
+		antibody.name<-c()
+		set.name<-c()
+		for(i in 1:length(input.files)){
+			Sys.sleep(0.5);
+			file.name  <-paste(data.dir,input.files[i],sep="/")
+			local.obj <-local(get(load(file=file.name)))
+			#############################
+			#############################
+			local.umi<-get_umi_count(local.obj)
+			antibody.name<-append(antibody.name,rownames(local.umi))
+			setTxtProgressBar(pb, pb$getVal()+1)
+		}
+		antibody.unique<-unique(antibody.name)
+		int.umi <- Matrix(nrow = length(antibody.unique), ncol = 1, data = 0, sparse = TRUE)
+		int.umi <- as(int.umi, "dgTMatrix") 
+		rownames(int.umi)<-antibody.unique
+		################################
+		print("Combining UMIs..")
+		################################
+		for(i in 1:length(input.files)){
+			Sys.sleep(0.5);
+			file.name  <-paste(data.dir,input.files[i],sep="/")
+			
+			local.obj <-local(get(load(file=file.name)))
+			#############################
+			#############################
+			local.umi<-get_umi_count(local.obj)
+			int.umi<-cbindX(as.matrix(int.umi),as.matrix(local.umi))
+			set.name.x<-rep(i,ncol(local.umi))
+			set.name<-append(set.name,set.name.x)
+			setTxtProgressBar(pb, pb$getVal()+1)
+		}
+	}
+	int.umi<-int.umi[,-c(1)]
+	int.umi[is.na(int.umi)==T]<-0
+	int.umi<- as(int.umi, "dgTMatrix")
+	sce<-SingleCellExperiment(assays = list(counts = int.umi))
+	object <- new("SingCellaR_Int", sce, dir_path_SingCellR_object_files=data.dir,SingCellR_object_files=input.files)
+	################################
+	process_cells_annotation(object)
+	object@meta.data<-cbind(get_cells_annotation(object),data.frame(data_set=set.name,IsPassed=TRUE))
+	assign(objName,object,envir=parent.frame())
+	invisible(1)
+	print("The integrated sparse matrix is created.")	
+}
 #' Run scanorama integration
 #' @param  object The SingCellaR_Int object.
 #' @param  useCombinedVarGenesFromIndividualSample is logical. If TRUE, all combined variable genes from individual sample will be used. If FALSE, highly variable genes from the whole combined samples will be used.
@@ -283,47 +350,63 @@ runSeuratIntegration <- function(object,Seurat.metadata="",Seurat.split.by="",n.
 	print("Seurat integrative analysis is done!.")
 }
 
-#' Run liger integration
-#' @param  object The SingCellaR_Int object.
-#' @param  liger.k liger's k number parameter. Default 30
-#' @param  liger.resolution liger's resolution parameter. Default 0.4
-#' @export 
-#' 
-
-runLiger <- function(object,liger.k=30,liger.resolution=0.4){
-  
-  objName <- deparse(substitute(object))
-  if(!is(object,"SingCellaR_Int")){
-    stop("Need to initialize the SingCellaR_Int object")
-  }
-  ##############################
-  data.set.ids<-unique(object@meta.data$data_set)
-  cells.info<-get_cells_annotation(object)
-  cells.info<-subset(cells.info,IsPassed ==TRUE)
-  cells.dat<-get_umi_count(object)
-  ##############################
-  datasets.mat<-list()
-  datasetname<-c(paste("s",data.set.ids,sep=""))
-  
-  for(i in 1:length(data.set.ids)){
-    my.cells<-subset(cells.info,data_set==i)
-    each.set.m<-cells.dat[,colnames(cells.dat) %in% as.character(my.cells$Cell)]
-    datasets.mat[[datasetname[i]]]<-as.matrix(each.set.m)
-  }
-  #########Liger integration#####
-  print("This process will take time and requires large RAM depending on the number of cells in your integration.")
-  my.liger <- liger::createLiger(datasets.mat)
-  my.liger <- liger::normalize(my.liger)
-  ###############################
-  my.liger <- liger::selectGenes(my.liger, var.thresh = 0.2, alpha.thresh=0.90, do.plot = F)
-  my.liger <- liger::scaleNotCenter(my.liger)
-  my.liger <- liger::optimizeALS(my.liger, k= liger.k)
-  my.liger <- liger::quantile_norm(my.liger)
-  ###############################
-  object@Liger.embeddings<-my.liger@H.norm
-  assign(objName,object,envir=parent.frame())
-  invisible(1)
-  print("Liger analysis is done!.")
+runSeuratIntegration_with_rpca <- function(object,Seurat.metadata="",Seurat.split.by="",n.dims.use=30,
+		Seurat.variablegenes.method = "vst",Seurat.variablegenes.number=2000,
+		use.SingCellaR.varGenes=F){
+	
+	objName <- deparse(substitute(object))
+	if(!is(object,"SingCellaR_Int")){
+		stop("Need to initialize the SingCellaR_Int object")
+	}
+	
+	Seuarat_Obj <- Seurat::CreateSeuratObject(get_umi_count(object), meta.data = Seurat.metadata)
+	Seurat.list <- Seurat::SplitObject(Seuarat_Obj, split.by = Seurat.split.by)
+	
+	pb <- txtProgressBar(max = length(Seurat.list), style = 3)
+	print("Process each Seurat object..")
+	
+	if(use.SingCellaR.varGenes==F){
+		for (i in 1:length(Seurat.list)) {
+			Sys.sleep(0.5);
+			Seurat.list[[i]] <- Seurat::NormalizeData(Seurat.list[[i]], verbose = FALSE)
+			Seurat.list[[i]] <- Seurat::FindVariableFeatures(Seurat.list[[i]], selection.method = Seurat.variablegenes.method, 
+					nfeatures = Seurat.variablegenes.number, verbose = FALSE)
+			setTxtProgressBar(pb, pb$getVal()+1)
+		}
+	}else{
+		for (i in 1:length(Seurat.list)) {
+			Sys.sleep(0.5);
+			gene.info<-get_genes_metadata(object)
+			gene.info<-subset(gene.info,IsVarGenes==TRUE)
+			var.genes<-as.character(rownames(gene.info))
+			Seurat.list[[i]] <- NormalizeData(Seurat.list[[i]], verbose = FALSE)
+			Seurat.list[[i]]@assays$RNA@var.features <- var.genes
+			setTxtProgressBar(pb, pb$getVal()+1)
+		}
+	}
+	######Seurat Integration###############################
+	print("This process will take time and requires large RAM depending on the number of cells in your integration.")
+	
+	features <- SelectIntegrationFeatures(object.list = Seurat.list)
+	
+	Seurat.list <- lapply(X = Seurat.list, FUN = function(x) {
+				x <- ScaleData(x, features = features, verbose = FALSE)
+				x <- RunPCA(x, features = features, verbose = FALSE)
+			})
+	
+	anchors <- FindIntegrationAnchors(object.list = Seurat.list, 
+			reference = 1:length(Seurat.list), 
+			reduction = "rpca", 
+			dims = 1:n.dims.use)
+	integrated_obj <- IntegrateData(anchorset = anchors, dims = 1:n.dims.use)
+	integrated_obj <- ScaleData(integrated_obj, verbose = FALSE)
+	integrated_obj <- RunPCA(integrated_obj, verbose = FALSE)
+	######################################################
+	object@Seurat.embeddings <- integrated_obj@reductions$pca@cell.embeddings
+	######################################################
+	assign(objName,object,envir=parent.frame())
+	invisible(1)
+	print("Seurat integrative analysis is done!.")
 }
 
 #' Run combat integration
@@ -439,7 +522,7 @@ runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.ma
       cl.diff.genes<-marker.genes[["louvain"]][[j]]
       i.index<-which(cl.diff.genes$combined.pval==0)
       
-      if(length(i.index) > 0){
+      if(length(i.index) > gsea.minSize){
         cl.diff.genes$combined.pval[i.index]<-min(cl.diff.genes$combined.pval[-c(i.index)])
       }
       cl.diff.genes$prerank.genes<- (-log10(cl.diff.genes$combined.pval))*cl.diff.genes$log2FC

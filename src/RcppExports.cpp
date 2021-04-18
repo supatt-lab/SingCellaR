@@ -87,35 +87,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// annoy_euclidean_nns
-Rcpp::List annoy_euclidean_nns(const std::string& index_name, const Rcpp::NumericMatrix& mat, std::size_t n_neighbors, std::size_t search_k, std::size_t grain_size, bool verbose);
-RcppExport SEXP _SingCellaR_annoy_euclidean_nns(SEXP index_nameSEXP, SEXP matSEXP, SEXP n_neighborsSEXP, SEXP search_kSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+// annoy_search_parallel_cpp
+List annoy_search_parallel_cpp(const std::string& index_name, NumericMatrix mat, std::size_t n_neighbors, std::size_t search_k, const std::string& metric, std::size_t n_threads, std::size_t grain_size);
+RcppExport SEXP _SingCellaR_annoy_search_parallel_cpp(SEXP index_nameSEXP, SEXP matSEXP, SEXP n_neighborsSEXP, SEXP search_kSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::string& >::type index_name(index_nameSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type mat(matSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_neighbors(n_neighborsSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type search_k(search_kSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(annoy_euclidean_nns(index_name, mat, n_neighbors, search_k, grain_size, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// annoy_cosine_nns
-Rcpp::List annoy_cosine_nns(const std::string& index_name, const Rcpp::NumericMatrix& mat, std::size_t n_neighbors, std::size_t search_k, std::size_t grain_size, bool verbose);
-RcppExport SEXP _SingCellaR_annoy_cosine_nns(SEXP index_nameSEXP, SEXP matSEXP, SEXP n_neighborsSEXP, SEXP search_kSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::string& >::type index_name(index_nameSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type mat(matSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_neighbors(n_neighborsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type search_k(search_kSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(annoy_cosine_nns(index_name, mat, n_neighbors, search_k, grain_size, verbose));
+    rcpp_result_gen = Rcpp::wrap(annoy_search_parallel_cpp(index_name, mat, n_neighbors, search_k, metric, n_threads, grain_size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -128,8 +113,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SingCellaR_makeBinaryMatrix_for_float", (DL_FUNC) &_SingCellaR_makeBinaryMatrix_for_float, 1},
     {"_SingCellaR_count_expressing_cells", (DL_FUNC) &_SingCellaR_count_expressing_cells, 2},
     {"_SingCellaR_count_divided_by_libsize", (DL_FUNC) &_SingCellaR_count_divided_by_libsize, 1},
-    {"_SingCellaR_annoy_euclidean_nns", (DL_FUNC) &_SingCellaR_annoy_euclidean_nns, 6},
-    {"_SingCellaR_annoy_cosine_nns", (DL_FUNC) &_SingCellaR_annoy_cosine_nns, 6},
+    {"_SingCellaR_annoy_search_parallel_cpp", (DL_FUNC) &_SingCellaR_annoy_search_parallel_cpp, 7},
     {NULL, NULL, 0}
 };
 

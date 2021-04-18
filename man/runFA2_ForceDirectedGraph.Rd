@@ -8,7 +8,7 @@ runFA2_ForceDirectedGraph(
   object,
   dim_reduction_method = c("pca", "nnmf", "lsi"),
   useIntegrativeEmbeddings = F,
-  integrative_method = c("combat", "seurat", "harmony", "supervised_harmony", "liger"),
+  integrative_method = c("combat", "seurat", "harmony", "supervised_harmony"),
   knn.metric = c("euclidean", "cosine"),
   n.dims.use = 30,
   n.neighbors = 5,

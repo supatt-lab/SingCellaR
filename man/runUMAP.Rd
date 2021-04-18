@@ -8,7 +8,7 @@ runUMAP(
   object,
   dim_reduction_method = c("pca", "nnmf", "lsi"),
   useIntegrativeEmbeddings = FALSE,
-  integrative_method = c("combat", "seurat", "harmony", "supervised_harmony", "liger"),
+  integrative_method = c("combat", "seurat", "harmony", "supervised_harmony"),
   umap_method = c("uwot"),
   n.dims.use = 50,
   n.neighbors = 30,

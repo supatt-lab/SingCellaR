@@ -1,4 +1,3 @@
-#' @import Rcpp
 #' @import Matrix
 #' @import bigmemory
 #' @import LinkedMatrix
@@ -14,7 +13,6 @@
 #' @import fgsea
 #' @import limma
 #' @import RANN
-#' @import threejs
 #' @import RColorBrewer 
 #' @import igraph
 #' @import pheatmap 

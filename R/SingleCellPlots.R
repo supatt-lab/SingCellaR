@@ -546,7 +546,11 @@ plot_umap_label_by_a_feature_of_interest<-function(object,feature="",point.size=
   }
   if(feature %in% colnames(object@meta.data)==T){
     ###
-    res.umap<-get_umap.result(object)
+	res.umap<-get_umap.result(object)
+	res.umap<-res.umap[,c("Cell","UMAP1","UMAP2")]
+	x.meta<-get_cells_annotation(object)
+	res.umap<-merge(res.umap,x.meta)
+	###
     p.x <- list()
     p.x[[1]] <- qplot(UMAP1,UMAP2, data=res.umap)+geom_point(aes_string(colour = feature),size=point.size)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"))+theme(axis.text.x=element_blank(),axis.ticks.x=element_blank())+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
     do.call(grid.arrange,p.x)
@@ -2981,6 +2985,8 @@ plot_heatmap_for_fGSEA_all_clusters <- function(fGSEA_results.data.frame,isApply
 #' @param  AUCell_cutoff The cutoff score. Default 0
 #' @param  IsShowOnlySampleIDs is logical. If TRUE, only selected sample IDs will be shown.
 #' @param  selected.sampleID The selected sample IDs.
+#' @param  IsDownsample is logical. If TRUE, only downsampled cells will be displayed.
+#' @param  downsample.size is the downsample size. Default 0
 #' @param  IsLimitedAUCscoreByClusters is logical. If TRUE, AUCell score will be limited by selected clusters.
 #' @param  selected.limited.clusters The selected clusters of interest.
 #' @param  clustering_method The clustering method.
@@ -2990,124 +2996,157 @@ plot_heatmap_for_fGSEA_all_clusters <- function(fGSEA_results.data.frame,isApply
 #' @export
 
 plot_umap_label_by_AUCell_score<-function(object,AUCell_gene_set_name=c(),AUCell_score,AUCell_cutoff=0,
-                                          IsShowOnlySampleIDs=FALSE,selected.sampleID=c(),IsLimitedAUCscoreByClusters=FALSE,
-                                          selected.limited.clusters=c(),clustering_method="louvain",
-                                          point.size=1,point.color1="black",point.color2="red"){
-  
-  if(!is(object,"SingCellaR")){
-    stop("Need to initialize the SingCellaR object")
-  }
-  if(length(AUCell_gene_set_name)==0){
-    stop("Required a name of gene set!")
-  }
-  #####
-  res.umap<-get_umap.result(object)
-  #####
-  my.AUCell<-AUCell_score[as.character(res.umap$Cell),]
-  my.AUCell.score<-my.AUCell[,which(colnames(my.AUCell)==AUCell_gene_set_name)]
-  #####
-  Genes.score<-data.frame(AUCell_Score=my.AUCell.score)
-  f.umap<-cbind(res.umap,Genes.score)
-  plot.umap<-f.umap
-  plot.umap$AUCell_Score[plot.umap$AUCell_Score < AUCell_cutoff]<-0
-  AUCell_gene_set_name<-paste(AUCell_gene_set_name," (Cells with AUC >",AUCell_cutoff, ")",sep="")
-  
-  if(IsShowOnlySampleIDs==T & IsLimitedAUCscoreByClusters==F){
-    sample.index<-which(plot.umap$sampleID %in% selected.sampleID)
-    plot.umap<-plot.umap[sample.index,]
-    names.sampleIDs<-paste(names(table(plot.umap$sampleID)), collapse=",") 
-    AUCell_gene_set_name<-paste(AUCell_gene_set_name," [show only: ",names.sampleIDs,"]",sep="")
-    
-  }else if(IsShowOnlySampleIDs==F & IsLimitedAUCscoreByClusters==T){
-    
-    clusters.info<-get_clusters(object)
-    
-    if(clustering_method=="walktrap"){
-      clusters.info<-clusters.info[,c("Cell","walktrap_cluster","walktrap_cluster_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="louvain"){
-      clusters.info<-clusters.info[,c("Cell","louvain_cluster","louvain_cluster_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="kmeans"){
-      clusters.info<-get_knn_graph.kmeans.cluster(object)
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="merged_walktrap"){
-      clusters.info<-clusters.info[,c("Cell","merged_walktrap","merged_walktrap_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="merged_louvain"){
-      clusters.info<-clusters.info[,c("Cell","merged_louvain","merged_louvain_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="merged_kmeans"){
-      clusters.info<-get_knn_graph.kmeans.cluster(object)[,c("Cell","merged_kmeans","merged_kmeans_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else{
-      stop("Need community detection or clustering-method names!")
-    }
-    
-    plot.umap<-merge(plot.umap,clusters.info)
-    sample.index<-which(plot.umap$cluster %in% selected.limited.clusters)
-    edited_score<-rep(0,nrow(plot.umap))
-    edited_score[sample.index]<-plot.umap$AUCell_Score[sample.index]
-    plot.umap$AUCell_Score<-edited_score
-    total.n.cells<-nrow(plot.umap)
-    #################
-    z<-plot.umap[sample.index,]
-    z<-subset(z,AUCell_Score > AUCell_cutoff)
-    AUC.n.cells<-nrow(z)
-    #################
-    txt<-paste("total cells=",total.n.cells," ; cells with AUCell_score=",AUC.n.cells,sep="")
-    AUCell_gene_set_name<-paste(AUCell_gene_set_name,txt,sep="\n")
-    
-  }else if(IsShowOnlySampleIDs==T & IsLimitedAUCscoreByClusters==T){
-    sample.index<-which(plot.umap$sampleID %in% selected.sampleID)
-    plot.umap<-plot.umap[sample.index,]
-    ##########
-    names.sampleIDs<-paste(names(table(plot.umap$sampleID)), collapse=",") 
-    AUCell_gene_set_name<-paste(AUCell_gene_set_name," [show only: ",names.sampleIDs,"]",sep="")
-    ##########
-    clusters.info<-get_clusters(object)
-    
-    if(clustering_method=="walktrap"){
-      clusters.info<-clusters.info[,c("Cell","walktrap_cluster","walktrap_cluster_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="louvain"){
-      clusters.info<-clusters.info[,c("Cell","louvain_cluster","louvain_cluster_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="kmeans"){
-      clusters.info<-get_knn_graph.kmeans.cluster(object)
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="merged_walktrap"){
-      clusters.info<-clusters.info[,c("Cell","merged_walktrap","merged_walktrap_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="merged_louvain"){
-      clusters.info<-clusters.info[,c("Cell","merged_louvain","merged_louvain_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else if(clustering_method=="merged_kmeans"){
-      clusters.info<-get_knn_graph.kmeans.cluster(object)[,c("Cell","merged_kmeans","merged_kmeans_color")]
-      colnames(clusters.info)<-c("Cell","cluster","cluster_color")
-    }else{
-      stop("Need community detection or clustering-method names!")
-    }
-    plot.umap<-merge(plot.umap,clusters.info)
-    sample.index<-which(plot.umap$cluster %in% selected.limited.clusters)
-    edited_score<-rep(0,nrow(plot.umap))
-    edited_score[sample.index]<-plot.umap$AUCell_Score[sample.index]
-    plot.umap$AUCell_Score<-edited_score
-    total.n.cells<-nrow(plot.umap)
-    #################
-    z<-plot.umap[sample.index,]
-    z<-subset(z,AUCell_Score > AUCell_cutoff)
-    AUC.n.cells<-nrow(z)
-    #################
-    txt<-paste("total cells=",total.n.cells," ; cells with AUCell_score=",AUC.n.cells,sep="")
-    AUCell_gene_set_name<-paste(AUCell_gene_set_name,txt,sep="\n")
-  }
-  ####################################
-  ggplot(plot.umap,aes(UMAP1,UMAP2, color=AUCell_Score)) + geom_point(size=point.size)+ggtitle(AUCell_gene_set_name)+
-    theme(plot.title = element_text(hjust = 0.5))+
-    scale_colour_gradientn(colours = c("gray85",point.color1,point.color2),values=c(0,0.1,1))+
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-    theme(axis.text.x=element_blank(),axis.ticks.x=element_blank())+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+		IsShowOnlySampleIDs=FALSE,selected.sampleID=c(),IsDownsample=F,
+		downsample.size=0,IsLimitedAUCscoreByClusters=FALSE,
+		selected.limited.clusters=c(),clustering_method="louvain",
+		point.size=1,point.color1="black",point.color2="red",showLegend=T){
+	
+	
+	if(!is(object,"SingCellaR")){
+		stop("Need to initialize the SingCellaR object")
+	}
+	if(length(AUCell_gene_set_name)==0){
+		stop("Required a name of gene set!")
+	}
+	#####
+	res.umap<-get_umap.result(object)
+	#####
+	my.AUCell<-AUCell_score[as.character(res.umap$Cell),]
+	my.AUCell.score<-my.AUCell[,which(colnames(my.AUCell)==AUCell_gene_set_name)]
+	#####
+	Genes.score<-data.frame(AUCell_Score=my.AUCell.score)
+	f.umap<-cbind(res.umap,Genes.score)
+	plot.umap<-f.umap
+	plot.umap$AUCell_Score[plot.umap$AUCell_Score < AUCell_cutoff]<-0
+	AUCell_gene_set_name<-paste(AUCell_gene_set_name," (Cells with AUC >",AUCell_cutoff, ")",sep="")
+	
+	if(IsShowOnlySampleIDs==T & IsLimitedAUCscoreByClusters==F){
+		sample.index<-which(plot.umap$sampleID %in% selected.sampleID)
+		if(IsDownsample==TRUE & downsample.size>0){
+			sample.index<-sample(sample.index,size=downsample.size)
+			plot.umap<-plot.umap[sample.index,]
+		}
+		names.sampleIDs<-paste(names(table(plot.umap$sampleID)), collapse=",")
+		
+		total.n.cells<-nrow(plot.umap)
+		
+		AUCell_gene_set_name<-paste(AUCell_gene_set_name," [show only: ",names.sampleIDs,"] from :", total.n.cells,sep="")
+		
+	}else if(IsShowOnlySampleIDs==F & IsLimitedAUCscoreByClusters==T){
+		
+		clusters.info<-get_clusters(object)
+		
+		if(clustering_method=="walktrap"){
+			clusters.info<-clusters.info[,c("Cell","walktrap_cluster","walktrap_cluster_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="louvain"){
+			clusters.info<-clusters.info[,c("Cell","louvain_cluster","louvain_cluster_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="kmeans"){
+			clusters.info<-get_knn_graph.kmeans.cluster(object)
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="merged_walktrap"){
+			clusters.info<-clusters.info[,c("Cell","merged_walktrap","merged_walktrap_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="merged_louvain"){
+			clusters.info<-clusters.info[,c("Cell","merged_louvain","merged_louvain_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="merged_kmeans"){
+			clusters.info<-get_knn_graph.kmeans.cluster(object)[,c("Cell","merged_kmeans","merged_kmeans_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else{
+			stop("Need community detection or clustering-method names!")
+		}
+		
+		plot.umap<-merge(plot.umap,clusters.info)
+		sample.index<-which(plot.umap$cluster %in% selected.limited.clusters)
+		edited_score<-rep(0,nrow(plot.umap))
+		edited_score[sample.index]<-plot.umap$AUCell_Score[sample.index]
+		plot.umap$AUCell_Score<-edited_score
+		#################
+		if(IsDownsample==TRUE & downsample.size>0){
+			s.index<-sample(1:nrow(plot.umap),size=downsample.size)
+			plot.umap<-plot.umap[s.index,]
+		}
+		z<-plot.umap
+		z<-subset(z,AUCell_Score > AUCell_cutoff)
+		total.n.cells<-nrow(plot.umap)
+		AUC.n.cells<-nrow(z)
+		#################
+		txt<-paste("total cells=",total.n.cells," ; cells with AUCell_score=",AUC.n.cells,sep="")
+		AUCell_gene_set_name<-paste(AUCell_gene_set_name,txt,sep="\n")
+		
+	}else if(IsShowOnlySampleIDs==T & IsLimitedAUCscoreByClusters==T){
+		sample.index<-which(plot.umap$sampleID %in% selected.sampleID)
+		if(IsDownsample==TRUE & downsample.size>0){
+			sample.index<-sample(sample.index,size=downsample.size)
+			plot.umap<-plot.umap[sample.index,]
+		}
+		##########
+		names.sampleIDs<-paste(names(table(plot.umap$sampleID)), collapse=",") 
+		AUCell_gene_set_name<-paste(AUCell_gene_set_name," [show only: ",names.sampleIDs,"]",sep="")
+		##########
+		clusters.info<-get_clusters(object)
+		
+		if(clustering_method=="walktrap"){
+			clusters.info<-clusters.info[,c("Cell","walktrap_cluster","walktrap_cluster_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="louvain"){
+			clusters.info<-clusters.info[,c("Cell","louvain_cluster","louvain_cluster_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="kmeans"){
+			clusters.info<-get_knn_graph.kmeans.cluster(object)
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="merged_walktrap"){
+			clusters.info<-clusters.info[,c("Cell","merged_walktrap","merged_walktrap_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="merged_louvain"){
+			clusters.info<-clusters.info[,c("Cell","merged_louvain","merged_louvain_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else if(clustering_method=="merged_kmeans"){
+			clusters.info<-get_knn_graph.kmeans.cluster(object)[,c("Cell","merged_kmeans","merged_kmeans_color")]
+			colnames(clusters.info)<-c("Cell","cluster","cluster_color")
+		}else{
+			stop("Need community detection or clustering-method names!")
+		}
+		plot.umap<-merge(plot.umap,clusters.info)
+		sample.index<-which(plot.umap$cluster %in% selected.limited.clusters)
+		edited_score<-rep(0,nrow(plot.umap))
+		edited_score[sample.index]<-plot.umap$AUCell_Score[sample.index]
+		plot.umap$AUCell_Score<-edited_score
+		total.n.cells<-nrow(plot.umap)
+		#################
+		z<-plot.umap[sample.index,]
+		z<-subset(z,AUCell_Score > AUCell_cutoff)
+		AUC.n.cells<-nrow(z)
+		#################
+		txt<-paste("total cells=",total.n.cells," ; cells with AUCell_score=",AUC.n.cells,sep="")
+		AUCell_gene_set_name<-paste(AUCell_gene_set_name,txt,sep="\n")
+		
+	}else if(IsShowOnlySampleIDs==F & IsLimitedAUCscoreByClusters==F & IsDownsample==T){
+		
+		if(IsDownsample==TRUE & downsample.size>0){
+			sample.index<-sample(sample.index,size=downsample.size)
+			plot.umap<-plot.umap[sample.index,]
+		}
+		total.n.cells<-nrow(plot.umap)
+		AUCell_gene_set_name<-paste("Total cells:", total.n.cells,sep="")
+		
+	}
+	if(showLegend==F){
+		ggplot(plot.umap,aes(UMAP1,UMAP2, color=AUCell_Score)) + geom_point(size=point.size)+
+				theme(plot.title = element_text(hjust = 0.5))+
+				scale_colour_gradientn(colours = c("gray85",point.color1,point.color2),values=c(0,0.1,1))+
+				theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+				theme(axis.text.x=element_blank(),axis.ticks.x=element_blank())+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+		
+	}else{
+		ggplot(plot.umap,aes(UMAP1,UMAP2, color=AUCell_Score)) + geom_point(size=point.size)+ggtitle(AUCell_gene_set_name)+
+			theme(plot.title = element_text(hjust = 0.5))+
+			scale_colour_gradientn(colours = c("gray85",point.color1,point.color2),values=c(0,0.1,1))+
+			theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+			theme(axis.text.x=element_blank(),axis.ticks.x=element_blank())+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+   }
 }
 
 #' Plot TSNE with the expression of multiple gene sets on selected sample IDs

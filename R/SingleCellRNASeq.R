@@ -1,62 +1,68 @@
 #' Load 10X sparse data matrices provided by the Cell Ranger software
 #' @param  object The SingCellaR object.
 #' @param  cellranger.version is the version of the Cell Ranger software used to generate input matrices.
+#' @param  isMultiFeatures is logical
+#' @param  selectedFeature SingCellaR supports two features 'Gene Expression' and 'Antibody Capture'
 #' @export
 #' @importFrom Matrix readMM
-load_matrices_from_cellranger <- function(object,cellranger.version=3){
-
-		objName <- deparse(substitute(object))
-		if(!is(object,"SingCellaR")){
-			stop("Need to initialize the SingCellaR object")
-		}
-		
-		data.dir<-object@dir_path_10x_matrix
-
-		if (! dir.exists(data.dir)){
-			stop("Directory provided does not exist")
-		}
-		input.files<-list.files(data.dir)
-		if (length(input.files) !=3){
-			stop("Required three files to be shown in the folder 'barcodes.tsv', 'genes.tsv or features.tsv', and 'matrix.mtx'")
-		}
-		if(cellranger.version==2){
-		  barcode.file <- paste(data.dir,"barcodes.tsv",sep="/")
-		  gene.file    <- paste(data.dir,"genes.tsv",sep="/")
-		  matrix.file  <- paste(data.dir,"matrix.mtx",sep="/")
-		  #if (!file.exists(barcode.file)){
-		  #  stop("Missing barcodes.tsv")
-		  #}
-		  #if (! file.exists(gene.file)){
-		  #  stop("Missing genes.tsv or features.tsv")
-		  #}
-		  #if (! file.exists(matrix.file )){
-		  #  stop("Missing matrix.mtx")
-		  #}
-		}else if(cellranger.version==3){
-		  barcode.file <- paste(data.dir,"barcodes.tsv.gz",sep="/")
-		  gene.file    <- paste(data.dir,"features.tsv.gz",sep="/")
-		  matrix.file  <- paste(data.dir,"matrix.mtx.gz",sep="/")
-		  #if (!file.exists(barcode.file)){
-		  #  stop("Missing barcodes.tsv.gz")
-		  #}
-		  #if (! file.exists(gene.file)){
-		  #  stop("Missing features.tsv.gz")
-		  #}
-		  #if (! file.exists(matrix.file )){
-		  #  stop("Missing matrix.mtx.gz")
-		  #}
-		}else{
-		  stop("Required the version number of the cellranger2 or 3")
-		}
+load_matrices_from_cellranger <- function(object,cellranger.version=3,
+		isMultiFeatures=FALSE,selectedFeature="Gene Expression"){
 	
+	objName <- deparse(substitute(object))
+	
+	if(!is(object,"SingCellaR")){
+		stop("Need to initialize the SingCellaR object")
+	}
+	
+	data.dir<-object@dir_path_10x_matrix
+	
+	if (! dir.exists(data.dir)){
+		stop("Directory provided does not exist")
+	}
+	input.files<-list.files(data.dir)
+	if (length(input.files) !=3){
+		stop("Required three files to be shown in the folder 'barcodes.tsv', 'genes.tsv or features.tsv', and 'matrix.mtx'")
+	}
+	if(cellranger.version==2){
+		barcode.file <- paste(data.dir,"barcodes.tsv",sep="/")
+		gene.file    <- paste(data.dir,"genes.tsv",sep="/")
+		matrix.file  <- paste(data.dir,"matrix.mtx",sep="/")
+		#if (!file.exists(barcode.file)){
+		#  stop("Missing barcodes.tsv")
+		#}
+		#if (! file.exists(gene.file)){
+		#  stop("Missing genes.tsv or features.tsv")
+		#}
+		#if (! file.exists(matrix.file )){
+		#  stop("Missing matrix.mtx")
+		#}
+	}else if(cellranger.version >=3){
+		barcode.file <- paste(data.dir,"barcodes.tsv.gz",sep="/")
+		gene.file    <- paste(data.dir,"features.tsv.gz",sep="/")
+		matrix.file  <- paste(data.dir,"matrix.mtx.gz",sep="/")
+		#if (!file.exists(barcode.file)){
+		#  stop("Missing barcodes.tsv.gz")
+		#}
+		#if (! file.exists(gene.file)){
+		#  stop("Missing features.tsv.gz")
+		#}
+		#if (! file.exists(matrix.file )){
+		#  stop("Missing matrix.mtx.gz")
+		#}
+	}else{
+		stop("Required the version number of the cellranger2 or 3")
+	}
+	
+	if(isMultiFeatures==FALSE){
+		
 		mat <- readMM(file = matrix.file)
-
 		gene_info <- read.delim(gene.file, stringsAsFactors = FALSE,
 				sep = "\t", header = FALSE)
+		
 		if (dim(mat)[1] != length(gene_info[, 1])) {
-			stop("Mismatch dimension between gene file and the matrix file")
+				stop("Mismatch dimension between gene file and the matrix file")
 		}else {
-			rownames(mat) <- make.unique(gene_info[, 2])
+				rownames(mat) <- make.unique(gene_info[, 2])
 		}
 		barcodes <- read.delim(barcode.file, stringsAsFactors = FALSE, sep = "\t", header = FALSE)
 		if (dim(mat)[2] != length(barcodes[, 1])) {
@@ -70,15 +76,93 @@ load_matrices_from_cellranger <- function(object,cellranger.version=3){
 		#sce<-SingleCellExperiment(assays = list(counts = mat[gene.expressing.cells > 0,]))
 		sce<-SingleCellExperiment(assays = list(counts = mat))
 		if(class(object)[1]=="SingCellaR"){
-    		object <- new("SingCellaR", sce, dir_path_10x_matrix=data.dir,sample_uniq_id=object@sample_uniq_id)
-  		}else if(class(object)[1]=="SingCellaR_Int"){
-    		object <- new("SingCellaR_Int", sce, dir_path_10x_matrix=data.dir,sample_uniq_id=object@sample_uniq_id)
-  		}else{
-    		stop(paste("There is no initiated class!"))
-  		}
-		assign(objName,object,envir=parent.frame())
-		invisible(1)
-		print("The sparse matrix is created.")
+			object <- new("SingCellaR", sce, dir_path_10x_matrix=data.dir,sample_uniq_id=object@sample_uniq_id)
+		}else if(class(object)[1]=="SingCellaR_Int"){
+			object <- new("SingCellaR_Int", sce, dir_path_10x_matrix=data.dir,sample_uniq_id=object@sample_uniq_id)
+		}else{
+			stop(paste("There is no initiated class!"))
+		}
+	}else if(isMultiFeatures==TRUE){
+		
+		if(selectedFeature %in% c("Gene Expression","Antibody Capture") == FALSE){
+			stop("Please input selected feature 'Gene Expression' or 'Antibody Capture'")
+		}
+		mat <- readMM(file = matrix.file)
+		gene_info <- read.delim(gene.file, stringsAsFactors = FALSE,
+				sep = "\t", header = FALSE)
+		#features<-unique(gene_info[,3])
+		my.index<-which(gene_info[,3]==selectedFeature)
+		my.mat<-mat[my.index,]
+		my.genes<-gene_info[,2][my.index]
+		
+		if (dim(my.mat)[1] != length(my.genes)) {
+			stop("Mismatch dimension between gene file and the matrix file")
+		}else {
+			rownames(my.mat) <- make.unique(my.genes)
+		}
+		barcodes <- read.delim(barcode.file, stringsAsFactors = FALSE, sep = "\t", header = FALSE)
+		if (dim(my.mat)[2] != length(barcodes[, 1])) {
+			stop("Mismatch dimension between barcodes file and the matrix file")
+		}else {
+			colnames(my.mat) <- paste(barcodes[, 1],"_",object@sample_uniq_id,sep="")
+		} 
+		sce<-SingleCellExperiment(assays = list(counts = my.mat))
+		if(class(object)[1]=="SingCellaR"){
+			object <- new("SingCellaR", sce, dir_path_10x_matrix=data.dir,sample_uniq_id=object@sample_uniq_id)
+		}else if(class(object)[1]=="SingCellaR_Int"){
+			object <- new("SingCellaR_Int", sce, dir_path_10x_matrix=data.dir,sample_uniq_id=object@sample_uniq_id)
+		}else{
+			stop(paste("There is no initiated class!"))
+		}
+	}
+	assign(objName,object,envir=parent.frame())
+	invisible(1)
+	print("The sparse matrix is created.")
+}
+
+
+load_custom_MEX_matrices <- function(object,barcode.file="barcodes.tsv.gz",
+		gene.file="features.tsv.gz",matrix.file="matrix.mtx.gz",
+		gene_name_column=1){
+	
+	objName <- deparse(substitute(object))
+	if(!is(object,"SingCellaR")){
+		stop("Need to initialize the SingCellaR object")
+	}
+	data.dir<-object@dir_path_10x_matrix
+	if (! dir.exists(data.dir)){
+		stop("Directory provided does not exist")
+	}
+	barcode.file <- paste(data.dir,barcode.file,sep="/")
+	gene.file    <- paste(data.dir,gene.file,sep="/")
+	matrix.file  <- paste(data.dir,matrix.file,sep="/")
+	
+	mat <- readMM(file = matrix.file)
+	gene_info <- read.delim(gene.file, stringsAsFactors = FALSE,
+			sep = "\t", header = FALSE)
+	
+	if (dim(mat)[1] != length(gene_info[, 1])) {
+		stop("Mismatch dimension between gene file and the matrix file")
+	}else {
+		rownames(mat) <- make.unique(gene_info[, gene_name_column])
+	}
+	barcodes <- read.delim(barcode.file, stringsAsFactors = FALSE, sep = "\t", header = FALSE)
+	if (dim(mat)[2] != length(barcodes[, 1])) {
+		stop("Mismatch dimension between barcodes file and the matrix file")
+	}else {
+		colnames(mat) <- paste(barcodes[, 1],"_",object@sample_uniq_id,sep="")
+	}
+	sce<-SingleCellExperiment(assays = list(counts = mat))
+	if(class(object)[1]=="SingCellaR"){
+		object <- new("SingCellaR", sce, dir_path_10x_matrix=data.dir,sample_uniq_id=object@sample_uniq_id)
+	}else if(class(object)[1]=="SingCellaR_Int"){
+		object <- new("SingCellaR_Int", sce, dir_path_10x_matrix=data.dir,sample_uniq_id=object@sample_uniq_id)
+	}else{
+		stop(paste("There is no initiated class!"))
+	}
+	assign(objName,object,envir=parent.frame())
+	invisible(1)
+	print("The sparse matrix is created.")
 }
 
 #' Load gene expression from a file
@@ -465,6 +549,30 @@ normalize_UMIs <- function(object,scale.factor = 1e4,use.scaled.factor=T){
   invisible(1)
   print("Normalization is completed!.")
 }
+
+normalize_ADTs <- function(object,method="CLR"){
+	
+	objName <- deparse(substitute(object))
+	if(!is(object,"SingCellaR")){
+		stop("Need to initialize the SingCellaR object")
+	}
+	#######################
+	data<-counts(object)
+	#######################
+	if(method=="CLR"){
+		
+		clr_function = function(x) {
+			return(log1p(x = x / (exp(x = sum(log1p(x = x[x > 0]), na.rm = TRUE) / length(x = x)))))
+		}
+		myapply <- ifelse(test = T, yes = pbapply, no = apply)
+		norm.data <- myapply(X = data,FUN = clr_function,MARGIN=1)
+		assay(object, "normalized.umi")<-t(norm.data)
+	}
+	assign(objName,object,envir=parent.frame())
+	invisible(1)
+	print("Normalization is completed!.")
+}
+
 
 #' Add the cell cycle gene scores into the cell metadata
 #' @param  object The SingCellaR object.
@@ -1034,7 +1142,7 @@ runNNMF <- function(object,k=30,use.regressout.data=T,use.scanorama.integrative.
 #'
 
 runTSNE <- function(object,dim_reduction_method=c("pca","nnmf"),useIntegrativeEmbeddings=F,
-                    integrative_method=c("combat","seurat","harmony","supervised_harmony","liger"),
+                    integrative_method=c("combat","seurat","harmony","supervised_harmony"),
                     n.dims.use=50,n.dims.embed=2,n.perplexity=30, n.seed = 1){
 	objName <- deparse(substitute(object))
 	if(!is(object,"SingCellaR")){
@@ -1067,8 +1175,6 @@ runTSNE <- function(object,dim_reduction_method=c("pca","nnmf"),useIntegrativeEm
 	    my.pca<-object@SupervisedHarmony.embeddings[,1:n.dims.use]
 	}else if(useIntegrativeEmbeddings==TRUE & integrative_method=="seurat"){
 	  my.pca<-object@Seurat.embeddings[,1:n.dims.use]
-	}else if(useIntegrativeEmbeddings==TRUE & integrative_method=="liger"){
-	  my.pca<-object@Liger.embeddings[,1:n.dims.use]
 	}else if(useIntegrativeEmbeddings==TRUE & integrative_method=="combat"){
 		my.pca<-object@Combat.embeddings[,1:n.dims.use]
 	}
@@ -1117,7 +1223,7 @@ runTSNE <- function(object,dim_reduction_method=c("pca","nnmf"),useIntegrativeEm
 #' @export 
 #'
 
-runUMAP <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegrativeEmbeddings=FALSE,integrative_method=c("combat","seurat","harmony","supervised_harmony","liger"),
+runUMAP <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegrativeEmbeddings=FALSE,integrative_method=c("combat","seurat","harmony","supervised_harmony"),
                     umap_method=c("uwot"),n.dims.use=50,n.neighbors=30,n.seed = 1,uwot.metric = 'cosine',
                     uwot.n.epochs = NULL,uwot.learning.rate = 1.0,uwot.min.dist = 0.25,uwot.spread = 1.0,uwot.set.op.mix.ratio = 1.0,
                     uwot.local.connectivity = 1L,uwot.repulsion.strength = 1,uwot.negative.sample.rate = 5,uwot.a = NULL,uwot.b = NULL,
@@ -1150,8 +1256,6 @@ runUMAP <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegra
     my.pca<-object@SupervisedHarmony.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="seurat"){
     my.pca<-object@Seurat.embeddings[,1:n.dims.use]
-  }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="liger"){
-    my.pca<-object@Liger.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="combat"){
 	  my.pca<-object@Combat.embeddings[,1:n.dims.use]
   }
@@ -1220,7 +1324,7 @@ runUMAP <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegra
 #'
 
 runDiffusionMap <- function(object,dim_reduction_method=c("pca","nnmf"),useIntegrativeEmbeddings=F,
-                    integrative_method=c("combat","seurat","harmony","supervised_harmony","liger"),
+                    integrative_method=c("combat","seurat","harmony","supervised_harmony"),
                     n.dims.use=50,n.dims.embed=3,n.neighbors=30,distance=c("euclidean","cosine"), 
                     n.seed = 1){
   
@@ -1253,8 +1357,6 @@ runDiffusionMap <- function(object,dim_reduction_method=c("pca","nnmf"),useInteg
     my.pca<-object@SupervisedHarmony.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="seurat"){
     my.pca<-object@Seurat.embeddings[,1:n.dims.use]
-  }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="liger"){
-    my.pca<-object@Liger.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="combat"){
     my.pca<-object@Combat.embeddings[,1:n.dims.use]
   }
@@ -1291,7 +1393,7 @@ runDiffusionMap <- function(object,dim_reduction_method=c("pca","nnmf"),useInteg
 #'
 
 runFA2_ForceDirectedGraph <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegrativeEmbeddings=F,
-                                      integrative_method=c("combat","seurat","harmony","supervised_harmony","liger"),
+                                      integrative_method=c("combat","seurat","harmony","supervised_harmony"),
                                       knn.metric=c("euclidean","cosine"),
                                       n.dims.use=30,n.neighbors=5,n.seed = 1,knn.n_trees=50,knn.n_threads =1,
                                       fa2_n_iter=1000,fa2_edgeWeightInfluence=1,fa2_barnesHutTheta=2, 
@@ -1323,8 +1425,6 @@ runFA2_ForceDirectedGraph <- function(object,dim_reduction_method=c("pca","nnmf"
     my.pca<-object@SupervisedHarmony.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="seurat"){
     my.pca<-object@Seurat.embeddings[,1:n.dims.use]
-  }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="liger"){
-    my.pca<-object@Liger.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="combat"){
     my.pca<-object@Combat.embeddings[,1:n.dims.use]
   }
@@ -1356,9 +1456,10 @@ runFA2_ForceDirectedGraph <- function(object,dim_reduction_method=c("pca","nnmf"
   if(py_module_available("fa2")==TRUE){
     
     ###3 lines below were for reading python in the ".py" functions found in the "src" folder.
-    #python.fa2 <<- reticulate::import("fa2", delay_load=TRUE)
-    #python.nx <<- reticulate::import("networkx", delay_load=TRUE)
-    #python.np <<- reticulate::import("numpy", convert=FALSE,delay_load=TRUE)
+	### These 3 lines will be commented when apply to the package###
+    python.fa2 <<- reticulate::import("fa2", delay_load=TRUE)
+    python.nx <<- reticulate::import("networkx", delay_load=TRUE)
+    python.np <<- reticulate::import("numpy", convert=FALSE,delay_load=TRUE)
     
     python.links <-python.np$array(links,dtype="object")
     #######################
@@ -1420,7 +1521,7 @@ runFA2_ForceDirectedGraph <- function(object,dim_reduction_method=c("pca","nnmf"
 
 
 runKNN_Graph <- function(object,dim_reduction_method=c("pca","nnmf"),
-                         useIntegrativeEmbeddings=F,integrative_method=c("combat","seurat","harmony","supervised_harmony","liger"),
+                         useIntegrativeEmbeddings=F,integrative_method=c("combat","seurat","harmony","supervised_harmony"),
                          n.dims.use=30,n.neighbors=5,knn.metric=c("euclidean","cosine"),knn.n_trees=50,
                          knn.n_threads=1,niter=500L,n.seed=1){
   objName <- deparse(substitute(object))
@@ -1446,8 +1547,6 @@ runKNN_Graph <- function(object,dim_reduction_method=c("pca","nnmf"),
       my.pca<-object@SupervisedHarmony.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="seurat"){
     my.pca<-object@Seurat.embeddings[,1:n.dims.use]
-  }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="liger"){
-    my.pca<-object@Liger.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="combat"){
     my.pca<-object@Combat.embeddings[,1:n.dims.use]
   }
@@ -1490,7 +1589,7 @@ runKNN_Graph <- function(object,dim_reduction_method=c("pca","nnmf"),
 #'
 
 identifyClusters <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegrativeEmbeddings=FALSE,
-                             integrative_method=c("combat","seurat","harmony","supervised_harmony","liger"),n.dims.use=30,n.neighbors=30,
+                             integrative_method=c("combat","seurat","harmony","supervised_harmony"),n.dims.use=30,n.neighbors=30,
                              knn.n_trees=50,knn.metric=c("euclidean","cosine"),knn.n_threads =1){
   
   objName <- deparse(substitute(object))
@@ -1518,8 +1617,6 @@ identifyClusters <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),u
     my.pca<-object@SupervisedHarmony.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="seurat"){
     my.pca<-object@Seurat.embeddings[,1:n.dims.use]
-  }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="liger"){
-    my.pca<-object@Liger.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="combat"){
     my.pca<-object@Combat.embeddings[,1:n.dims.use]
   }
@@ -2843,67 +2940,6 @@ clustering_KMeansOnKNN_Graph <- function(object,k=10,iter.max=100){
 	invisible(1)
 	print("KMeans analysis on the KNN-graph is done!.")
 }
-
-#findShortestPath <- function(object,start_cluster="",end_cluster="",cluster.type=c("louvain","walktrap","kmeans")){
-#  objName <- deparse(substitute(object))
-#  if(!is(object,"SingCellaR")){
-#    stop("Need to initialize the SingCellaR object")
-#  }
-#  cluster.type <- match.arg(cluster.type)
-#  
-#  if(start_cluster==""){
-#    stop("Please input a cluster!")
-#  }
-#  if(end_cluster==""){
-#    stop("Please input a cluster!")
-#  }
-#  
-#  clusters.info<-get_clusters(object)
-#  
-#  if(cluster.type=="walktrap"){
-#    clusters.info<-clusters.info[,c("Cell","walktrap_cluster")]
-#    colnames(clusters.info)<-c("Cell","cluster")
-#  }else if(cluster.type=="louvain"){
-#    clusters.info<-clusters.info[,c("Cell","louvain_cluster")]
-#    colnames(clusters.info)<-c("Cell","cluster")
-#  }else if(cluster.type=="kmeans"){
-#    clusters.info<-get_knn_graph.kmeans.cluster(object)
-#    colnames(clusters.info)<-c("Cell","cluster")
-#  }else{
-#    stop("Need community detection or clustering-method names!")
-#  }
-#  
-#  G.layout<-get_fa2_graph.layout(object)
-#  G<-get_igraph.graph(object)
-#  ####################################
-#  s.members<-subset(clusters.info,cluster==start_cluster)
-#  e.members<-subset(clusters.info,cluster==end_cluster)
-#  
-#  s.G.layout<-G.layout[s.members$Cell,]
-#  e.G.layout<-G.layout[e.members$Cell,]
-#  #####################################
-#  s.x<-mean(s.G.layout[,1])
-#  s.y<-mean(s.G.layout[,2])
-#  
-#  e.x<-mean(e.G.layout[,1])
-#  e.y<-mean(e.G.layout[,2])
-#  #####################################
-#  s.dis<-sqrt((s.G.layout[,1]-s.x)^2+(s.G.layout[,2]-s.y)^2)
-#  s.cell.name <-names(which.min(s.dis))
-#  s.idx<-which(rownames(G.layout)==s.cell.name)
-#  
-#  e.dis<-sqrt((e.G.layout[,1]-e.x)^2+(e.G.layout[,2]-e.y)^2)
-#  e.cell.name <-names(which.min(e.dis))
-#  e.idx<-which(rownames(G.layout)==e.cell.name)
-#  ######################################
-#  ShortPth <- get.shortest.paths(G, s.idx, e.idx,mode="all")
-#  path_mems <-as.vector(ShortPth$vpath[[1]])
-#  path_clusters<-as.character(unique(clusters.info[path_mems,]$cluster))
-#  shortest_path<-list()
-#  shortest_path[["members"]]<-path_mems
-#  shortest_path[["clusters"]]<-path_clusters
-#  return(shortest_path)
-#}
 
 #' Identify the clusters that potenntially can be merged.
 #' @param  object  The SingCellaR object.

@@ -11,12 +11,15 @@ plot_umap_label_by_AUCell_score(
   AUCell_cutoff = 0,
   IsShowOnlySampleIDs = FALSE,
   selected.sampleID = c(),
+  IsDownsample = F,
+  downsample.size = 0,
   IsLimitedAUCscoreByClusters = FALSE,
   selected.limited.clusters = c(),
   clustering_method = "louvain",
   point.size = 1,
   point.color1 = "black",
-  point.color2 = "red"
+  point.color2 = "red",
+  showLegend = T
 )
 }
 \arguments{
@@ -31,6 +34,10 @@ plot_umap_label_by_AUCell_score(
 \item{IsShowOnlySampleIDs}{is logical. If TRUE, only selected sample IDs will be shown.}
 
 \item{selected.sampleID}{The selected sample IDs.}
+
+\item{IsDownsample}{is logical. If TRUE, only downsampled cells will be displayed.}
+
+\item{downsample.size}{is the downsample size. Default 0}
 
 \item{IsLimitedAUCscoreByClusters}{is logical. If TRUE, AUCell score will be limited by selected clusters.}
 

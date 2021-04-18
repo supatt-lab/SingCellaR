@@ -29,11 +29,7 @@ count_divided_by_libsize <- function(X) {
     .Call(`_SingCellaR_count_divided_by_libsize`, X)
 }
 
-annoy_euclidean_nns <- function(index_name, mat, n_neighbors, search_k, grain_size = 1L, verbose = FALSE) {
-    .Call(`_SingCellaR_annoy_euclidean_nns`, index_name, mat, n_neighbors, search_k, grain_size, verbose)
-}
-
-annoy_cosine_nns <- function(index_name, mat, n_neighbors, search_k, grain_size = 1L, verbose = FALSE) {
-    .Call(`_SingCellaR_annoy_cosine_nns`, index_name, mat, n_neighbors, search_k, grain_size, verbose)
+annoy_search_parallel_cpp <- function(index_name, mat, n_neighbors, search_k, metric, n_threads = 0L, grain_size = 1L) {
+    .Call(`_SingCellaR_annoy_search_parallel_cpp`, index_name, mat, n_neighbors, search_k, metric, n_threads, grain_size)
 }
 
