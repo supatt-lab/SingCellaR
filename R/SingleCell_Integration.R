@@ -472,7 +472,7 @@ runCombat<-function(object,use.reduced_dim=T,
 #' @param  n.dims.use The number of PCA dimensions used for the input for harmony. Default 30
 #' @param  fGSEA.minSize The cutoff minimum number of genes in each gene set. Gene set that contains the number of genes lower than this number will be excluded. Default 10
 #' @param  fGSEA.maxSize The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 500
-#' @param  fGSEA.nperm The number of fGSEA permutation. Default 10000
+#' @param  fGSEA.eps The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10
 #' @param  hcl.height.cutoff The cutree cutoff value for hierarchical clustering. Default 0.25
 #' @param  covariates The unwanted source of variations (e.g. batch, sample_id, etc).
 #' @param  harmony.sigma The harmony sigma parameter. Default 0.1
@@ -486,7 +486,7 @@ runCombat<-function(object,use.reduced_dim=T,
 #' @export 
 #' 
 
-runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.maxSize=500,fGSEA.nperm=10000,
+runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.maxSize=500,fGSEA.eps = 1e-10,
                                   hcl.height.cutoff=0.25,covariates=c("data_set"),harmony.sigma = 0.1,
                                   harmony.tau = 0,harmony.block.size = 0.05,harmony.max.iter = 10,harmony.max.iter.cluster = 200,
                                   harmony.epsilon.cluster = 1e-05,harmony.epsilon.harmony = 1e-04,n.seed=1){
@@ -511,7 +511,7 @@ runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.ma
   #######fGSEA parameters#####
   gsea.minSize=fGSEA.minSize
   gsea.maxSize=fGSEA.maxSize
-  gsea.nperm=fGSEA.nperm
+  #gsea.nperm=fGSEA.nperm
   ############################
   gsea.results<-data.table()
   
@@ -542,11 +542,11 @@ runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.ma
       y.genes.db<-genes.db[-rm.index]
       
       print(paste("Processing fGSEA for: ",my.title,sep=""))
-      fgseaRes <- fgsea(pathways = y.genes.db, 
+      fgseaRes <- fgseaMultilevel(pathways = y.genes.db, 
                         stats = prerank.genes,
                         minSize=gsea.minSize,
                         maxSize=gsea.maxSize,
-                        nperm=gsea.nperm)
+                        eps=fGSEA.eps)
       
       fgseaRes<-fgseaRes[fgseaRes$ES > 0]
       fgseaRes$cluster<-my.title

@@ -2678,12 +2678,13 @@ identifyGSEAPrerankedGenes <- function(method=c("wilcoxon"),objectA=objectA,
 #' @param  nTopGenesets The number of showing top gene sets.
 #' @param  minSize The cutoff minimum number of genes in each gene set. Gene set that contains the number of genes lower than this number will be excluded. Default 5
 #' @param  maxSize The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 1000
-#' @param  nperm The number of fGSEA permutation. Default 10000
+#' @param  eps The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10
 #' @export 
 
 Run_fGSEA_analysis <- function(objectA=objectA,objectB=objectB,cellsA=c(),cellsB=c(),
                                GSEAPrerankedGenes_info="",gmt.file="",plotGSEA=T,
-                               nTopGenesets=10,minSize=5,maxSize=1000,nperm=10000){
+                               nTopGenesets=10,minSize=5,maxSize=1000,eps = 1e-10){
+  
   
   if(!is(objectA,"SingCellaR")){
     stop("Need to initialize the SingCellaR object")
@@ -2715,11 +2716,11 @@ Run_fGSEA_analysis <- function(objectA=objectA,objectB=objectB,cellsA=c(),cellsB
   my.db<- gmtPathways(gmt.file)
   
   print("Processing GSEA!")
-  fgseaRes <- fgsea(pathways = my.db, 
-                    stats = prerank.genes,
-                    minSize=minSize,
-                    maxSize=maxSize,
-                    nperm=nperm)
+  fgseaRes <- fgseaMultilevel(pathways = my.db, 
+                              stats = prerank.genes,
+                              minSize=minSize,
+                              maxSize=maxSize,
+                              eps = eps)
   
   fgseaRes<-fgseaRes[order(fgseaRes$padj), ]
   ################################
@@ -2735,7 +2736,6 @@ Run_fGSEA_analysis <- function(objectA=objectA,objectB=objectB,cellsA=c(),cellsB
   fgseaRes.return[["pathways"]]<-my.db
   return(fgseaRes.return)
 }
-
 #' Run GSEA analysis for a selected cluster vs the rest of clusters 
 #' @param  object  The SingCellaR object.
 #' @param  cluster.id The specified cluster id (e.g. 'cluster1').
@@ -2747,12 +2747,12 @@ Run_fGSEA_analysis <- function(objectA=objectA,objectB=objectB,cellsA=c(),cellsB
 #' @param  nTopGenesets The number of showing top gene sets.
 #' @param  minSize The cutoff minimum number of genes in each gene set. Gene set that contains the number of genes lower than this number will be excluded. Default 5
 #' @param  maxSize The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 2500
-#' @param  nperm The number of fGSEA permutation. Default 10000
+#' @param  eps The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10
 #' @export 
 
 Run_fGSEA_for_a_selected_cluster_vs_the_rest_of_clusters <- function(object,cluster.id="",cluster.type=c("louvain","walktrap","kmeans","merged_walktrap","merged_louvain","merged_kmeans"),
                                                                      diff.gene.method="wilcoxon",gmt.file="",fishers_exact_test=0.1,plotGSEA=T,
-                                                                     nTopGenesets=10,minSize=5,maxSize=2500,nperm=10000){
+                                                                     nTopGenesets=10,minSize=5,maxSize=2500,eps = 1e-10){
   
   if(!is(object,"SingCellaR")){
     stop("Need to initialize the SingCellaR object")
@@ -2783,11 +2783,11 @@ Run_fGSEA_for_a_selected_cluster_vs_the_rest_of_clusters <- function(object,clus
   my.db<- gmtPathways(gmt.file)
   
   print("Processing GSEA!")
-  fgseaRes <- fgsea(pathways = my.db, 
+  fgseaRes <- fgseaMultilevel(pathways = my.db, 
                     stats = prerank.genes,
                     minSize=minSize,
                     maxSize=maxSize,
-                    nperm=nperm)
+                    eps = eps)
   
   fgseaRes<-fgseaRes[order(fgseaRes$padj), ]
   ################################
@@ -2811,13 +2811,13 @@ Run_fGSEA_for_a_selected_cluster_vs_the_rest_of_clusters <- function(object,clus
 #' @param  gmt.file The GMT file name.
 #' @param  minSize The cutoff minimum number of genes in each gene set. Gene set that contains the number of genes lower than this number will be excluded. Default 5
 #' @param  maxSize The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 2500
-#' @param  nperm The number of fGSEA permutation. Default 10000
+#' @param  eps The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10
 #' @param  n.seed The set seed number.
 #' @export 
 #' @return a dataframe of GSEA analysis results.
 
 
-Run_fGSEA_for_multiple_comparisons <- function(GSEAPrerankedGenes_list,gmt.file="",minSize=5,maxSize=2500,nperm=10000, n.seed=1){
+Run_fGSEA_for_multiple_comparisons <- function(GSEAPrerankedGenes_list,gmt.file="",minSize=5,maxSize=2500,eps = 1e-10, n.seed=1){
   
   if(gmt.file==""){
     stop("Need the GMT file!")
@@ -2851,11 +2851,11 @@ Run_fGSEA_for_multiple_comparisons <- function(GSEAPrerankedGenes_list,gmt.file=
     my.db<- gmtPathways(gmt.file)
     ###################################
     print(paste("Processing fGSEA for:",my.cluster.id,sep=""))
-    fgseaRes <- fgsea(pathways = my.db, 
+    fgseaRes <- fgseaMultilevel(pathways = my.db, 
                       stats = prerank.genes,
                       minSize=minSize,
                       maxSize=maxSize,
-                      nperm=nperm)
+                      eps = eps)
     fgseaRes$EnrichedIn[fgseaRes$ES > 0]<-my.cluster.id
     fgseaRes$EnrichedIn[fgseaRes$ES < 0]<-"the_rest_of_clusters"
     fgseaRes$cluster<-my.cluster.id
