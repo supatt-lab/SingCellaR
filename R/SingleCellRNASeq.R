@@ -1456,10 +1456,10 @@ runFA2_ForceDirectedGraph <- function(object,dim_reduction_method=c("pca","nnmf"
   if(py_module_available("fa2")==TRUE){
     
     ###3 lines below were for reading python in the ".py" functions found in the "src" folder.
-	### These 3 lines will be commented when apply to the package###
-    python.fa2 <<- reticulate::import("fa2", delay_load=TRUE)
-    python.nx <<- reticulate::import("networkx", delay_load=TRUE)
-    python.np <<- reticulate::import("numpy", convert=FALSE,delay_load=TRUE)
+	  ### These 3 lines will be commented when apply to the package###
+    #python.fa2 <<- reticulate::import("fa2", delay_load=TRUE)
+    #python.nx <<- reticulate::import("networkx", delay_load=TRUE)
+    #python.np <<- reticulate::import("numpy", convert=FALSE,delay_load=TRUE)
     
     python.links <-python.np$array(links,dtype="object")
     #######################

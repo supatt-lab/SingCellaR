@@ -15,7 +15,7 @@ Run_fGSEA_analysis(
   nTopGenesets = 10,
   minSize = 5,
   maxSize = 1000,
-  nperm = 10000
+  eps = 1e-10
 )
 }
 \arguments{
@@ -39,7 +39,7 @@ Run_fGSEA_analysis(
 
 \item{maxSize}{The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 1000}
 
-\item{nperm}{The number of fGSEA permutation. Default 10000}
+\item{eps}{The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10}
 }
 \description{
 Run GSEA analysis

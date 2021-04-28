@@ -16,7 +16,7 @@ Run_fGSEA_for_a_selected_cluster_vs_the_rest_of_clusters(
   nTopGenesets = 10,
   minSize = 5,
   maxSize = 2500,
-  nperm = 10000
+  eps = 1e-10
 )
 }
 \arguments{
@@ -40,7 +40,7 @@ Run_fGSEA_for_a_selected_cluster_vs_the_rest_of_clusters(
 
 \item{maxSize}{The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 2500}
 
-\item{nperm}{The number of fGSEA permutation. Default 10000}
+\item{eps}{The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10}
 }
 \description{
 Run GSEA analysis for a selected cluster vs the rest of clusters

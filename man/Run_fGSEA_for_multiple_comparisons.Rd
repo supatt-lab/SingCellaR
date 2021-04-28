@@ -9,7 +9,7 @@ Run_fGSEA_for_multiple_comparisons(
   gmt.file = "",
   minSize = 5,
   maxSize = 2500,
-  nperm = 10000,
+  eps = 1e-10,
   n.seed = 1
 )
 }
@@ -22,7 +22,7 @@ Run_fGSEA_for_multiple_comparisons(
 
 \item{maxSize}{The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 2500}
 
-\item{nperm}{The number of fGSEA permutation. Default 10000}
+\item{eps}{The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10}
 
 \item{n.seed}{The set seed number.}
 
