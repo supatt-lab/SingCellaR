@@ -12,7 +12,8 @@ filter_cells_and_genes(
   max_detected_genes = 8000,
   min_percent_mito = 0,
   max_percent_mito = 10,
-  genes_with_expressing_cells = 10
+  genes_with_expressing_cells = 10,
+  isRemovedDoublets = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ filter_cells_and_genes(
 \item{max_percent_mito}{The maximum percent of UMIs from the mitocondrial genes.}
 
 \item{genes_with_expressing_cells}{The cutoff for genes expressing in at least a number of cells.}
+
+\item{isRemovedDoublets}{remove doublets or not, default = TRUE. This requires doublet detection result from the function 'DoubletDetection_with_scrublet'}
 }
 \description{
 Filter out cells and genes

@@ -2647,7 +2647,7 @@ plot_jaccard_similarity_among_clusters <- function(object,cluster.type=c("louvai
   diag(jaccard.mat)<-1
   jaccard.mat[lower.tri(jaccard.mat)] <- t(jaccard.mat)[lower.tri(t(jaccard.mat))]
   ##########pheatmap#######################
-  pheatmap(jaccard.mat,display_numbers = T)
+  pheatmap::pheatmap(jaccard.mat,display_numbers = T)
   ##########################################
 }
 
@@ -2942,12 +2942,12 @@ plot_heatmap_for_fGSEA_all_clusters <- function(fGSEA_results.data.frame,isApply
         info.y<-info.y[,custom_order_samples]
     }
     if(use_pvalues_for_clustering==TRUE){
-             pheatmap(FM,clustering_method=clustering_method,clustering_distance_rows=clustering_distance_rows,
+             pheatmap::pheatmap(FM,clustering_method=clustering_method,clustering_distance_rows=clustering_distance_rows,
              clustering_distance_cols=clustering_distance_cols,cluster_rows = cluster_rows,
              cluster_cols = cluster_cols,color=colorRampPalette(rev(brewer.pal(n = 9, name = "RdYlBu")))(100),
              display_numbers=info.y,fontsize_row=fontsize_row,gaps_row = gaps_row, gaps_col = gaps_col)
     }else{
-            pheatmap(FM2,clustering_method=clustering_method,clustering_distance_rows=clustering_distance_rows,
+            pheatmap::pheatmap(FM2,clustering_method=clustering_method,clustering_distance_rows=clustering_distance_rows,
                  clustering_distance_cols=clustering_distance_cols,cluster_rows = cluster_rows,
                  cluster_cols = cluster_cols,color=colorRampPalette(rev(brewer.pal(n = 9, name = "RdYlBu")))(100),
                  display_numbers=info.y,fontsize_row=fontsize_row,gaps_row = gaps_row, gaps_col = gaps_col)
@@ -2965,12 +2965,12 @@ plot_heatmap_for_fGSEA_all_clusters <- function(fGSEA_results.data.frame,isApply
       FM2<-FM2[,custom_order_samples]
     }
     if(use_pvalues_for_clustering==TRUE){
-      pheatmap(FM,clustering_method=clustering_method,clustering_distance_rows=clustering_distance_rows,
+      pheatmap::pheatmap(FM,clustering_method=clustering_method,clustering_distance_rows=clustering_distance_rows,
              clustering_distance_cols=clustering_distance_cols,cluster_rows = cluster_rows,
              cluster_cols = cluster_cols,color=colorRampPalette(rev(brewer.pal(n = 9, name = "RdYlBu")))(100),
              fontsize_row=fontsize_row,gaps_row = gaps_row, gaps_col = gaps_col)
     }else{
-      pheatmap(FM2,clustering_method=clustering_method,clustering_distance_rows=clustering_distance_rows,
+      pheatmap::pheatmap(FM2,clustering_method=clustering_method,clustering_distance_rows=clustering_distance_rows,
                clustering_distance_cols=clustering_distance_cols,cluster_rows = cluster_rows,
                cluster_cols = cluster_cols,color=colorRampPalette(rev(brewer.pal(n = 9, name = "RdYlBu")))(100),
                fontsize_row=fontsize_row,gaps_row = gaps_row, gaps_col = gaps_col)

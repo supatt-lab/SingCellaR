@@ -287,6 +287,63 @@ process_cells_annotation <- function(object,mitochondiral_genes_start_with="MT-"
 	
 }
 
+#' DoubletDetection_with_scrublet
+#' @param  object The SingCellaR object.
+#' @param  expected.doublet.rate The expected fraction of transcriptomes that are doublets, typically 0.05-0.1.
+#' @param  seed The seed number 
+#' @param  PCs The number of input PCA components
+#' @param  min.cells Used for gene filtering prior to PCA. Genes expressed at fewer than min_counts, default=3, in fewer than min_cells are excluded.
+#' @param  min_gene_variablity Used for gene filtering prior to PCA. Keep the most highly variable genes for the analysis.
+#' @export
+
+DoubletDetection_with_scrublet <- function(object,expected.doublet.rate =0.03,seed = 2021L, 
+                                           PCs = 30L,min.cells = 10, min_gene_variablity = 85){
+  
+  objName <- deparse(substitute(object))
+  if(!is(object,"SingCellaR")){
+    stop("Need to initialize the SingCellaR object")
+  }
+  print("Processing Scrublet..")
+  ###############################
+  if(py_module_available("scrublet")==FALSE){
+    stop("The scrublet python module is not installed!. Please install scrublet in your reticulate python environment")
+  }
+  
+  if(py_module_available("scrublet")==TRUE){
+    ### a line below will be commented when apply to the package###
+    ###python.scrublet <<- reticulate::import("scrublet", delay_load=TRUE)
+    
+    my.umi <- get_umi_count(object)
+    # Build scrublet object
+    scrub <- python.scrublet$Scrublet(counts_matrix = t(my.umi),
+                                      expected_doublet_rate = expected.doublet.rate,
+                                      random_state = seed)
+    
+    # Run Scrublet 
+    results <- scrub$scrub_doublets(min_cells = min.cells,
+                                    min_gene_variability_pctl = min_gene_variablity,
+                                    n_prin_comps = PCs)
+    
+    # Write score in a dataframe and add Cell ID
+    # The cell ID are matched with the used.umi colnames
+    score <- cbind(results[[1]],results[[2]])
+    score <- as.data.frame(score)
+    
+    colnames(score) <- c("Scrublet_score","Scrublet_type")
+    score$Scrublet_type[score$Scrublet_type == "0"] <- "Singlet"
+    score$Scrublet_type[score$Scrublet_type == '1'] <- "Doublets"
+    ########update metadata#################
+    meta.data<-get_cells_annotation(object)
+    meta.data$Scrublet_type<-score$Scrublet_type
+    get_cells_annotation(object)<-meta.data
+    ##
+    assign(objName,object,envir=parent.frame())
+    invisible(1)
+    print("Doublet prediction result is added in the metadata.")
+  }
+}
+
+
 #' Target-Seq processing for cell annotation
 #' @param  object The TargetSeq object.
 #' @param  mitochondiral_genes_start_with The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.
@@ -352,12 +409,13 @@ TargetSeq_process_cells_annotation <- function(object,mitochondiral_genes_start_
 #' @param  min_percent_mito The minimum percent of UMIs from the mitocondrial genes.
 #' @param  max_percent_mito The maximum percent of UMIs from the mitocondrial genes.
 #' @param  genes_with_expressing_cells The cutoff for genes expressing in at least a number of cells.
+#' @param  isRemovedDoublets remove doublets or not, default = TRUE. This requires doublet detection result from the function 'DoubletDetection_with_scrublet'
 #' @export
 #' @importFrom Matrix rowSums
 
 filter_cells_and_genes <- function(object,min_UMIs=1000,max_UMIs=30000,min_detected_genes=1000,max_detected_genes=8000,
                                    min_percent_mito=0,max_percent_mito=10,
-                                   genes_with_expressing_cells=10){
+                                   genes_with_expressing_cells=10,isRemovedDoublets=TRUE){
   objName <- deparse(substitute(object))
   if(!is(object,"SingCellaR")){
     stop("Need to initialize the SingCellaR object")
@@ -371,7 +429,6 @@ filter_cells_and_genes <- function(object,min_UMIs=1000,max_UMIs=30000,min_detec
   f.cells<-as.character(filtered.cells$Cell)
   meta.data$IsPassed[meta.data$Cell %in% f.cells]<-TRUE
   n.cells<-nrow(meta.data)
-  n.filter<-nrow(meta.data[meta.data$IsPassed=="FALSE",])
   ###
   #umi.dat<-get_umi_count(object)
   #binary.mat<-umi.dat
@@ -382,6 +439,16 @@ filter_cells_and_genes <- function(object,min_UMIs=1000,max_UMIs=30000,min_detec
   rownames(CountCellPerGene)<-rownames(get_umi_count(object))
   CountCellPerGene$IsExpress<-FALSE
   CountCellPerGene$IsExpress[CountCellPerGene$num_detected_cells >=genes_with_expressing_cells]<-TRUE
+  ###################
+  if(isRemovedDoublets==TRUE){
+    if("Scrublet_type" %in% colnames(meta.data) ==TRUE){
+      meta.data$IsPassed[meta.data$Scrublet_type=="Doublets"]<-FALSE
+    }else{
+      stop("Need to run 'DoubletDetection_with_scrublet' function, or change 'isRemovedDoublets' to FALSE")
+    }
+  }
+  #####################
+  n.filter<-nrow(meta.data[meta.data$IsPassed=="FALSE",])
   ##Update the metadata
   get_cells_annotation(object)<-meta.data
   get_genes_metadata(object)<-CountCellPerGene

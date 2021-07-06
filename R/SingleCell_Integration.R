@@ -241,19 +241,20 @@ runScanorama <- function(object,useCombinedVarGenesFromIndividualSample=F){
 #' @param  object The SingCellaR_Int object.
 #' @param  n.dims.use The number of PCA dimensions used for the input for harmony.
 #' @param  covariates The unwanted source of variations (e.g. batch, sample_id, etc).
-#' @param  harmony.sigma The harmony sigma parameter. Default 0.1
+#' @param  harmony.theta The harmony theta parameter. Deafult NULL. This is the diversity clustering penalty parameter. Specify for each variable in vars_use Default theta=2. theta=0 does not encourage any diversity. Larger values of theta result in more diverse clusters.
+#' @param  harmony.sigma The harmony sigma parameter. Default 0.1. This parameter is the width of soft kmeans clusters. Sigma scales the distance from a cell to cluster centroids. Larger values of sigma result in cells assigned to more clusters. Smaller values of sigma make soft kmeans cluster approach hard clustering.
 #' @param  harmony.nclust The harmony nclust parameter. Default NULL
-#' @param  harmony.tau The harmony tau parameter. Default 0
-#' @param  harmony.block.size The harmony block.size parameter. Default 0.05
-#' @param  harmony.max.iter The harmony max iteration parameter. Default 10
-#' @param  harmony.max.iter.cluster The harmony max iteration cluster. Default 200
-#' @param  harmony.epsilon.cluster The harmony epsilon.cluster parameter. Default 1e-05
-#' @param  harmony.epsilon.harmony The harmony epsilon parameter. Default 1e-04
+#' @param  harmony.tau The harmony tau parameter. Default 0. The parameter is for the protection against overclustering small datasets with large ones. tau is the expected number of cells per cluster.
+#' @param  harmony.block.size The harmony block.size parameter. Default 0.05. What proportion of cells to update during clustering. Between 0 to 1. Larger values may be faster but less accurate
+#' @param  harmony.max.iter The harmony max iteration parameter. Default 10. Maximum number of rounds to run Harmony. One round of Harmony involves one clustering and one correction step.
+#' @param  harmony.max.iter.cluster The harmony max iteration cluster. Default 200. Maximum number of rounds to run clustering at each round of Harmony.
+#' @param  harmony.epsilon.cluster The harmony epsilon.cluster parameter. Default 1e-05. Convergence tolerance for clustering round of Harmony. Set to -Inf to never stop early.
+#' @param  harmony.epsilon.harmony The harmony epsilon parameter. Default 1e-04. Convergence tolerance for Harmony. Set to -Inf to never stop early.
 #' @param  n.seed The set seed number.
 #' @export 
 #' 
 
-runHarmony <- function(object,n.dims.use=30,covariates=c("data_set"),harmony.sigma = 0.1,harmony.nclust = NULL,
+runHarmony <- function(object,n.dims.use=30,covariates=c("data_set"),harmony.theta = NULL,harmony.sigma = 0.1,harmony.nclust = NULL,
                        harmony.tau = 0,harmony.block.size = 0.05,harmony.max.iter = 10,harmony.max.iter.cluster = 200,
                        harmony.epsilon.cluster = 1e-05,harmony.epsilon.harmony = 1e-04,n.seed=1){
   
@@ -272,6 +273,7 @@ runHarmony <- function(object,n.dims.use=30,covariates=c("data_set"),harmony.sig
   harmony_embeddings <- harmony::HarmonyMatrix(orig.pca, 
                                                cell.meta,  
                                                covariates,
+                                               theta = harmony.theta,
                                                sigma = harmony.sigma,
                                                nclust = harmony.nclust,
                                                tau = harmony.tau,
