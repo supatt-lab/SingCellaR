@@ -292,6 +292,7 @@ runHarmony <- function(object,n.dims.use=30,covariates=c("data_set"),harmony.the
 
 #' Run Seurat integration
 #' @param  object The SingCellaR_Int object.
+#' @param  Seurat.metadata  cell metadata (a data frame format)
 #' @param  Seurat.split.by The indicated feature for splitting samples for the integration.
 #' @param  n.dims.use The number of PCA dimensions used for the input for Seurat.
 #' @param  Seurat.variablegenes.method The method for variable genes selection. Default 'vst'
@@ -351,6 +352,17 @@ runSeuratIntegration <- function(object,Seurat.metadata="",Seurat.split.by="",n.
 	invisible(1)
 	print("Seurat integrative analysis is done!.")
 }
+
+#' Run Seurat integration using reciprocal PCA (RPCA)
+#' @param  object The SingCellaR_Int object.
+#' @param  Seurat.metadata  cell metadata (a data frame format)
+#' @param  Seurat.split.by The indicated feature for splitting samples for the integration.
+#' @param  n.dims.use The number of PCA dimensions used for the input for Seurat.
+#' @param  Seurat.variablegenes.method The method for variable genes selection. Default 'vst'
+#' @param  Seurat.variablegenes.number The number of highly varible genes. Default 2000
+#' @param  use.SingCellaR.varGenes is logical. If TRUE, the highly variable genes identified by SingCellaR will be used.
+#' @export 
+#' 
 
 runSeuratIntegration_with_rpca <- function(object,Seurat.metadata="",Seurat.split.by="",n.dims.use=30,
 		Seurat.variablegenes.method = "vst",Seurat.variablegenes.number=2000,

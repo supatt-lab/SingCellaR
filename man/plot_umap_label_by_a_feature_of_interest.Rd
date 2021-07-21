@@ -4,7 +4,14 @@
 \alias{plot_umap_label_by_a_feature_of_interest}
 \title{Plot UMAP and display only the feature of interest}
 \usage{
-plot_umap_label_by_a_feature_of_interest(object, feature = "", point.size = 1)
+plot_umap_label_by_a_feature_of_interest(
+  object,
+  feature = "",
+  point.size = 1,
+  mark.feature = TRUE,
+  mark.font.size = 5,
+  mark.font.color = "black"
+)
 }
 \arguments{
 \item{object}{The SingCellaR object.}
@@ -12,6 +19,12 @@ plot_umap_label_by_a_feature_of_interest(object, feature = "", point.size = 1)
 \item{feature}{The feature name. The features can be found in the cell metadata.}
 
 \item{point.size}{The point size. Default 1}
+
+\item{mark.feature}{showing a selected feature name. Default TRUE}
+
+\item{mark.font.size}{the size of the feature name. Default 5}
+
+\item{mark.font.color}{the color of the feature name. Default black}
 }
 \description{
 Plot UMAP and display only the feature of interest

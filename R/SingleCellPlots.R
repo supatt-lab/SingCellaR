@@ -534,9 +534,14 @@ plot_umap_label_by_selected_sampleID<-function(object,selected.sampleID=c(),titl
 #' @param  object The SingCellaR object.
 #' @param  feature The feature name. The features can be found in the cell metadata.
 #' @param  point.size The point size. Default 1
+#' @param  mark.feature showing a selected feature name. Default TRUE
+#' @param  mark.font.size the size of the feature name. Default 5
+#' @param  mark.font.color the color of the feature name. Default black 
 #' @export
 
-plot_umap_label_by_a_feature_of_interest<-function(object,feature="",point.size=1){
+plot_umap_label_by_a_feature_of_interest<-function(object,feature="",point.size=1,
+                                                   mark.feature=TRUE,mark.font.size=5,
+                                                   mark.font.color="black"){
   
   if(!is(object,"SingCellaR")){
     stop("Need to initialize the SingCellaR object")
@@ -546,20 +551,35 @@ plot_umap_label_by_a_feature_of_interest<-function(object,feature="",point.size=
   }
   if(feature %in% colnames(object@meta.data)==T){
     ###
-	res.umap<-get_umap.result(object)
-	res.umap<-res.umap[,c("Cell","UMAP1","UMAP2")]
-	x.meta<-get_cells_annotation(object)
-	res.umap<-merge(res.umap,x.meta)
-	###
-    p.x <- list()
-    p.x[[1]] <- qplot(UMAP1,UMAP2, data=res.umap)+geom_point(aes_string(colour = feature),size=point.size)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"))+theme(axis.text.x=element_blank(),axis.ticks.x=element_blank())+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
-    do.call(grid.arrange,p.x)
+    res.umap<-get_umap.result(object)
+    res.umap<-res.umap[,c("Cell","UMAP1","UMAP2")]
+    x.meta<-get_cells_annotation(object)
+    res.umap<-merge(res.umap,x.meta)
+    ###
+    p.x <- qplot(UMAP1,UMAP2, data=res.umap)+geom_point(aes_string(colour = feature),
+                                                        size=point.size)+theme(panel.grid.major = element_blank(), 
+                                                                               panel.grid.minor = element_blank(),
+                                                                               panel.background = element_blank(), 
+                                                                               axis.line = element_line(colour = "black"))+
+      theme(axis.text.x=element_blank(),axis.ticks.x=element_blank())+
+      theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+    
+    if(mark.feature==TRUE){
+      edata <- res.umap[,c("UMAP1","UMAP2")]
+      edata$feature<-res.umap[,feature]
+      colnames(edata) <- c('x', "y", "z")
+      center <- aggregate(cbind(x,y) ~ z, data = edata, median)
+      p.x<-p.x+geom_text(data=center, aes_string(x = "x", y = "y", label = "z"), 
+                         size = mark.font.size, colour = mark.font.color)
+    }
+    return(p.x)
   }else{
     error<-paste("Couldnot find :",feature," in the column names of cell meta data.",sep="")
     stop(error)
   }
   
 }
+
 
 #' Plot TSNE with gene expression
 #' @param  object The SingCellaR object.
