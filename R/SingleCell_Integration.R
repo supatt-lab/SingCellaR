@@ -502,7 +502,7 @@ runCombat<-function(object,use.reduced_dim=T,
 
 runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.maxSize=500,fGSEA.eps = 1e-10,
                                   hcl.height.cutoff=0.25,covariates=c("data_set"),harmony.sigma = 0.1,
-                                  harmony.tau = 0,harmony.block.size = 0.05,harmony.max.iter = 10,harmony.max.iter.cluster = 200,
+                                  harmony.tau = 0,harmony.block.size = 0.05,harmony.max.iter = 10,harmony.max.iter.cluster = 20,
                                   harmony.epsilon.cluster = 1e-05,harmony.epsilon.harmony = 1e-04,n.seed=1){
   
   objName <- deparse(substitute(object))
@@ -613,9 +613,9 @@ runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.ma
   cell.meta<-combined_info[rownames(orig.pca),]
   ######################################################
   ccm.clusters<-unique(combined_info$common_cluster)
-  n.uniq<-length(grep("cl",ccm.clusters))
+  n.uniq<-length(grep("_",ccm.clusters))
   n.common<-length(ccm.clusters)-n.uniq
-  show.info.txt<-paste("Identify :", n.common, "matched and", n.uniq, "uniquely un-matched clusters!")
+  show.info.txt<-paste("Identify :", n.common, "matched and", n.uniq, "unique (sample-specific) clusters!")
   print(show.info.txt)
   print(paste(length(ccm.clusters)," cluster centers will be used as the pre-assigned clusters for harmony!",sep=""))
   ######################################################  
