@@ -16,7 +16,7 @@ runSupervised_Harmony(
   harmony.tau = 0,
   harmony.block.size = 0.05,
   harmony.max.iter = 10,
-  harmony.max.iter.cluster = 200,
+  harmony.max.iter.cluster = 20,
   harmony.epsilon.cluster = 1e-05,
   harmony.epsilon.harmony = 1e-04,
   n.seed = 1

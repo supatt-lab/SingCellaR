@@ -1,10 +1,10 @@
 #' Preprocessing for data integration
 #' @param  object The SingCellaR object.
-#' @param  mitochondiral_genes_start_with The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.
+#' @param  mito_genes_start_with The unique prefix alphabets for mitochondrial genes such as 'MT-' for human and 'mt-' for mouse genes.
 #' @export 
 #' 
 
-preprocess_integration <- function(object,mitochondiral_genes_start_with="MT-"){
+preprocess_integration <- function(object,mito_genes_start_with="MT-"){
 	
 	objName <- deparse(substitute(object))
 	if(!is(object,"SingCellaR_Int")){
@@ -97,7 +97,7 @@ preprocess_integration <- function(object,mitochondiral_genes_start_with="MT-"){
 	object@marker.genes<-marker.genes
 	object@SingCellaR.individual.clusters<-cluster.info
 	################################
-	process_cells_annotation(object,mitochondiral_genes_start_with=mitochondiral_genes_start_with)
+	process_cells_annotation(object,mito_genes_start_with=mito_genes_start_with)
 	object@meta.data<-cbind(get_cells_annotation(object),data.frame(data_set=set.name))
 	assign(objName,object,envir=parent.frame())
 	invisible(1)
@@ -105,71 +105,77 @@ preprocess_integration <- function(object,mitochondiral_genes_start_with="MT-"){
 	
 }
 
+#' Preprocessing for ADT
+#' @param  object The SingCellaR object.
+#' @export 
+#' 
 preprocess_integration_for_ADT <- function(object){
-	
-	objName <- deparse(substitute(object))
-	
-	if(!is(object,"SingCellaR_Int")){
-		stop("Need to initialize the SingCellaR_Int object")
-	}
-	data.dir<-object@dir_path_SingCellR_object_files
-	
-	if (! dir.exists(data.dir)){
-		stop("Directory provided does not exist")
-	}
-	
-	input.files<-object@SingCellR_object_files
-	if(length(input.files)==1){
-		stop("Need more SingCellaR object files as the input!")
-	}else{
-		pb <- txtProgressBar(max = length(input.files), style = 3)
-		###############################################
-		print("Checking number of rows..")
-		antibody.name<-c()
-		set.name<-c()
-		for(i in 1:length(input.files)){
-			Sys.sleep(0.5);
-			file.name  <-paste(data.dir,input.files[i],sep="/")
-			local.obj <-local(get(load(file=file.name)))
-			#############################
-			#############################
-			local.umi<-get_umi_count(local.obj)
-			antibody.name<-append(antibody.name,rownames(local.umi))
-			setTxtProgressBar(pb, pb$getVal()+1)
-		}
-		antibody.unique<-unique(antibody.name)
-		int.umi <- Matrix(nrow = length(antibody.unique), ncol = 1, data = 0, sparse = TRUE)
-		int.umi <- as(int.umi, "dgTMatrix") 
-		rownames(int.umi)<-antibody.unique
-		################################
-		print("Combining UMIs..")
-		################################
-		for(i in 1:length(input.files)){
-			Sys.sleep(0.5);
-			file.name  <-paste(data.dir,input.files[i],sep="/")
-			
-			local.obj <-local(get(load(file=file.name)))
-			#############################
-			#############################
-			local.umi<-get_umi_count(local.obj)
-			int.umi<-cbindX(as.matrix(int.umi),as.matrix(local.umi))
-			set.name.x<-rep(i,ncol(local.umi))
-			set.name<-append(set.name,set.name.x)
-			setTxtProgressBar(pb, pb$getVal()+1)
-		}
-	}
-	int.umi<-int.umi[,-c(1)]
-	int.umi[is.na(int.umi)==T]<-0
-	int.umi<- as(int.umi, "dgTMatrix")
-	sce<-SingleCellExperiment(assays = list(counts = int.umi))
-	object <- new("SingCellaR_Int", sce, dir_path_SingCellR_object_files=data.dir,SingCellR_object_files=input.files)
-	################################
-	process_cells_annotation(object)
-	object@meta.data<-cbind(get_cells_annotation(object),data.frame(data_set=set.name,IsPassed=TRUE))
-	assign(objName,object,envir=parent.frame())
-	invisible(1)
-	print("The integrated sparse matrix is created.")	
+  
+  objName <- deparse(substitute(object))
+  
+  if(!is(object,"SingCellaR_Int")){
+    stop("Need to initialize the SingCellaR_Int object")
+  }
+  data.dir<-object@dir_path_SingCellR_object_files
+  
+  if (! dir.exists(data.dir)){
+    stop("Directory provided does not exist")
+  }
+  
+  input.files<-object@SingCellR_object_files
+  if(length(input.files)==1){
+    stop("Need more SingCellaR object files as the input!")
+  }else{
+    pb <- txtProgressBar(max = length(input.files), style = 3)
+    ###############################################
+    print("Checking number of rows..")
+    antibody.name<-c()
+    set.name<-c()
+    for(i in 1:length(input.files)){
+      Sys.sleep(0.5);
+      file.name  <-paste(data.dir,input.files[i],sep="/")
+      local.obj <-readRDS(file=file.name)
+      #############################
+      #############################
+      local.umi<-get_umi_count(local.obj)
+      antibody.name<-append(antibody.name,rownames(local.umi))
+      setTxtProgressBar(pb, pb$getVal()+1)
+    }
+    antibody.unique<-unique(antibody.name)
+    int.umi <- Matrix(nrow = length(antibody.unique), ncol = 1, data = 0, sparse = TRUE)
+    int.umi <- as(int.umi, "dgTMatrix") 
+    rownames(int.umi)<-antibody.unique
+    ################################
+    print("Combining UMIs..")
+    ################################
+    for(i in 1:length(input.files)){
+      
+      Sys.sleep(0.5);
+      file.name  <-paste(data.dir,input.files[i],sep="/")
+      
+      local.obj <-readRDS(file=file.name)
+      #############################
+      #############################
+      local.umi<-get_umi_count(local.obj)
+      int.umi<-cbindX(as.matrix(int.umi),as.matrix(local.umi))
+      set.name.x<-rep(i,ncol(local.umi))
+      set.name<-append(set.name,set.name.x)
+      setTxtProgressBar(pb, pb$getVal()+1)
+    }
+  }
+  int.umi<-int.umi[,-c(1)]
+  int.umi[is.na(int.umi)==T]<-0
+  int.umi<- as(int.umi, "dgTMatrix")
+  sce<-SingleCellExperiment(assays = list(counts = int.umi))
+  object <- new("SingCellaR_Int", sce, dir_path_SingCellR_object_files=data.dir,SingCellR_object_files=input.files)
+  ################################
+  process_cells_annotation(object)
+  object@meta.data<-cbind(get_cells_annotation(object),data.frame(data_set=set.name,IsPassed=TRUE))
+  assign(objName,object,envir=parent.frame())
+  invisible(1)
+  print("The integrated sparse matrix is created.")	
 }
+
 #' Run scanorama integration
 #' @param  object The SingCellaR_Int object.
 #' @param  useCombinedVarGenesFromIndividualSample is logical. If TRUE, all combined variable genes from individual sample will be used. If FALSE, highly variable genes from the whole combined samples will be used.

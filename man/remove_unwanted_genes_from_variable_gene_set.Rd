@@ -7,7 +7,7 @@
 remove_unwanted_genes_from_variable_gene_set(
   object,
   gmt.file = c(),
-  removed_gene_sets = c("Ribosomal_gene", "Mitocondrial_gene")
+  removed_gene_sets = c("Ribosomal_gene", "Mitochondrial_gene")
 )
 }
 \arguments{

@@ -4,12 +4,12 @@
 \alias{process_cells_annotation}
 \title{Process all cells annotation}
 \usage{
-process_cells_annotation(object, mitochondiral_genes_start_with = "MT-")
+process_cells_annotation(object, mito_genes_start_with = "MT-")
 }
 \arguments{
 \item{object}{The SingCellaR object.}
 
-\item{mitochondiral_genes_start_with}{The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.}
+\item{mito_genes_start_with}{The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.}
 }
 \description{
 Process all cells annotation

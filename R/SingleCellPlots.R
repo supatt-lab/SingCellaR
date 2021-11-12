@@ -27,8 +27,8 @@ plot_cells_annotation <- function(object,type=c("histogram","boxplot")){
 		text2<-paste("mean =",format(mean(cells.anno$detectedGenesPerCell),digit=2),sept="")
 		legend("topright",text2, col = 2:3, lty = 2:3, lwd = 2)
 		
-		##plot the percentage of mitocondrial genes##
-		hist(cells.anno$percent_mito,breaks=100,xlim=c(min(cells.anno$percent_mito),max(cells.anno$percent_mito)),col="azure",xlab="% of mitocondrial genes",ylab="Cell frequency",main="% of mitocondrial genes per cell")
+		##plot the percentage of mitochondrial genes##
+		hist(cells.anno$percent_mito,breaks=100,xlim=c(min(cells.anno$percent_mito),max(cells.anno$percent_mito)),col="azure",xlab="% of mitochondrial genes",ylab="Cell frequency",main="% of mitochondrial genes per cell")
 		abline(v=mean(cells.anno$percent_mito),lwd=2,lty=2,col="red")
 		
 		text3<-paste("mean =",format(mean(cells.anno$percent_mito),digit=2),sept="")
@@ -112,7 +112,7 @@ TargetSeq_plot_cells_annotation <- function(object,type=c("histogram","boxplot")
     legend("topright",text2, col = 2:3, lty = 2:3, lwd = 2)
     
     ##plot the percentage of mitocondrial genes##
-    hist(cells.anno$percent_mito,breaks=100,xlim=c(min(cells.anno$percent_mito,na.rm=T),max(cells.anno$percent_mito,na.rm=T)),col="azure",xlab="% of mitocondrial genes",ylab="Cell frequency",main="% of mitocondrial genes per cell")
+    hist(cells.anno$percent_mito,breaks=100,xlim=c(min(cells.anno$percent_mito,na.rm=T),max(cells.anno$percent_mito,na.rm=T)),col="azure",xlab="% of mitochondrial genes",ylab="Cell frequency",main="% of mitochondrial genes per cell")
     abline(v=mean(cells.anno$percent_mito),lwd=2,lty=2,col="red")
     
     text3<-paste("mean =",format(mean(cells.anno$percent_mito,na.rm=T),digit=2),sept="")

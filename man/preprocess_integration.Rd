@@ -4,12 +4,12 @@
 \alias{preprocess_integration}
 \title{Preprocessing for data integration}
 \usage{
-preprocess_integration(object, mitochondiral_genes_start_with = "MT-")
+preprocess_integration(object, mito_genes_start_with = "MT-")
 }
 \arguments{
 \item{object}{The SingCellaR object.}
 
-\item{mitochondiral_genes_start_with}{The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.}
+\item{mito_genes_start_with}{The unique prefix alphabets for mitochondrial genes such as 'MT-' for human and 'mt-' for mouse genes.}
 }
 \description{
 Preprocessing for data integration

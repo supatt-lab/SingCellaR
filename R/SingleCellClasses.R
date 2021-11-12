@@ -102,7 +102,7 @@ setClass("SingCellaR_Int",
 				Scanorama.integrative.matrix="ANY",
 				Harmony.embeddings="ANY",
 				SupervisedHarmony.embeddings="ANY",
-				#Liger.embeddings="ANY",
+				Liger.embeddings="ANY",
 				Seurat.embeddings="ANY",
 				Combat.embeddings="ANY"
 		)

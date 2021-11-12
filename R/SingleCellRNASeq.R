@@ -239,11 +239,11 @@ subsample_cells <- function(object,n.subsample=10000,n.seed = 123){
 
 #' Process all cells annotation
 #' @param  object The SingCellaR object.
-#' @param  mitochondiral_genes_start_with The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.
+#' @param  mito_genes_start_with The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.
 #' @export
 #' @importFrom Matrix colSums
 #' 
-process_cells_annotation <- function(object,mitochondiral_genes_start_with="MT-"){
+process_cells_annotation <- function(object,mito_genes_start_with="MT-"){
 
 	objName <- deparse(substitute(object))
 	if(!is(object,"SingCellaR")){
@@ -271,7 +271,7 @@ process_cells_annotation <- function(object,mitochondiral_genes_start_with="MT-"
 	meta.data$detectedGenesPerCell<-getDetectedGenesPerCell(umi.dat,1)
 	
 	##check % of mitocondrial genes
-	searching.string<-paste("^",mitochondiral_genes_start_with,sep="")
+	searching.string<-paste("^",mito_genes_start_with,sep="")
 	mito.genes <- grep(searching.string, rownames(umi.dat), value = T)
 	print("List of mitochondrial genes:")
 	print(mito.genes)
@@ -351,7 +351,7 @@ DoubletDetection_with_scrublet <- function(object,expected.doublet.rate =0.03,se
 #' @export
 #' @importFrom Matrix colSums
 
-TargetSeq_process_cells_annotation <- function(object,mitochondiral_genes_start_with="MT-",ERCC_genes_start_with="ERCC-"){
+TargetSeq_process_cells_annotation <- function(object,mito_genes_start_with="MT-",ERCC_genes_start_with="ERCC-"){
   
   objName <- deparse(substitute(object))
   
@@ -375,7 +375,7 @@ TargetSeq_process_cells_annotation <- function(object,mitochondiral_genes_start_
   #################################################
   meta.data$detectedGenesPerCell<-getDetectedGenesPerCell(normalized.umi,1)
   ##check % of mitocondrial genes
-  searching.string<-paste("^",mitochondiral_genes_start_with,sep="")
+  searching.string<-paste("^",mito_genes_start_with,sep="")
   mito.genes <- grep(searching.string, rownames(umi.dat), value = T)
   print("List of mitochondrial genes:")
   print(mito.genes)
@@ -413,8 +413,8 @@ TargetSeq_process_cells_annotation <- function(object,mitochondiral_genes_start_
 #' @export
 #' @importFrom Matrix rowSums
 
-filter_cells_and_genes <- function(object,min_UMIs=1000,max_UMIs=30000,min_detected_genes=1000,max_detected_genes=8000,
-                                   min_percent_mito=0,max_percent_mito=10,
+filter_cells_and_genes <- function(object,min_UMIs=1000,max_UMIs=30000,min_detected_genes=1000,
+                                   max_detected_genes=8000,min_percent_mito=0,max_percent_mito=10,
                                    genes_with_expressing_cells=10,isRemovedDoublets=TRUE){
   objName <- deparse(substitute(object))
   if(!is(object,"SingCellaR")){
@@ -1038,7 +1038,7 @@ get_variable_genes_for_integrative_data_by_fitting_GLM_model <- function(object,
 #' @export 
 #'
 
-remove_unwanted_genes_from_variable_gene_set<-function(object,gmt.file=c(),removed_gene_sets=c("Ribosomal_gene","Mitocondrial_gene")){
+remove_unwanted_genes_from_variable_gene_set<-function(object,gmt.file=c(),removed_gene_sets=c("Ribosomal_gene","Mitochondrial_gene")){
   
   objName <- deparse(substitute(object))
   
@@ -1290,7 +1290,7 @@ runTSNE <- function(object,dim_reduction_method=c("pca","nnmf"),useIntegrativeEm
 #' @export 
 #'
 
-runUMAP <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegrativeEmbeddings=FALSE,integrative_method=c("combat","seurat","harmony","supervised_harmony"),
+runUMAP <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegrativeEmbeddings=FALSE,integrative_method=c("combat","seurat","harmony","supervised_harmony","liger"),
                     umap_method=c("uwot"),n.dims.use=50,n.neighbors=30,n.seed = 1,uwot.metric = 'cosine',
                     uwot.n.epochs = NULL,uwot.learning.rate = 1.0,uwot.min.dist = 0.25,uwot.spread = 1.0,uwot.set.op.mix.ratio = 1.0,
                     uwot.local.connectivity = 1L,uwot.repulsion.strength = 1,uwot.negative.sample.rate = 5,uwot.a = NULL,uwot.b = NULL,
@@ -1325,6 +1325,8 @@ runUMAP <- function(object,dim_reduction_method=c("pca","nnmf","lsi"),useIntegra
     my.pca<-object@Seurat.embeddings[,1:n.dims.use]
   }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="combat"){
 	  my.pca<-object@Combat.embeddings[,1:n.dims.use]
+  }else if(useIntegrativeEmbeddings==TRUE & integrative_method=="liger"){
+    my.pca<-object@Liger.embeddings[,1:n.dims.use]
   }
   ###
   #if(umap_method=="umap-learn"){

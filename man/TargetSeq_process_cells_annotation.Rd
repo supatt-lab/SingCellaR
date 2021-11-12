@@ -6,16 +6,16 @@
 \usage{
 TargetSeq_process_cells_annotation(
   object,
-  mitochondiral_genes_start_with = "MT-",
+  mito_genes_start_with = "MT-",
   ERCC_genes_start_with = "ERCC-"
 )
 }
 \arguments{
 \item{object}{The TargetSeq object.}
 
-\item{mitochondiral_genes_start_with}{The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.}
-
 \item{ERCC_genes_start_with}{The unique prefix alphabets for ERCC genes.}
+
+\item{mitochondiral_genes_start_with}{The unique prefix alphabets for mitocondrial genes such as 'MT-' for human and 'mt-' for mouse genes.}
 }
 \description{
 Target-Seq processing for cell annotation
