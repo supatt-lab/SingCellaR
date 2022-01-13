@@ -1,5 +1,5 @@
 # SingCellaR
-an integrative analysis tool for analysing large-scale single cell RNA-sequencing data
+an integrative analysis tool for analysing single-cell RNA sequencing data
 
 # SingCellaR Tutorial
 
