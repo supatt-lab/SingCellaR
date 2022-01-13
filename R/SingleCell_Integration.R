@@ -654,3 +654,47 @@ runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.ma
   invisible(1)
   print("Supervised harmony analysis is done!.")
 }
+
+#' Run runLiger_online_iNMF integration (see also http://htmlpreview.github.io/?https://github.com/welch-lab/liger/blob/master/vignettes/online_iNMF_tutorial.html)
+#' @param  object The SingCellaR_Int object.
+#' @param  liger.k Inner dimension of factorization–number of metagenes (default 30). A value in the range 20-50 works well for most analyses.
+#' @param  liger.miniBatch_size Total number of cells in each minibatch (default 5000). This is a reasonable default, but a smaller value such as 1000 may be necessary for analyzing very small datasets. In general, minibatch size should be no larger than the number of cells in the smallest dataset.
+#' @param  liger.max.epochs Maximum number of epochs (complete passes through the data). (default 5)
+#' @export 
+#' 
+runLiger_online_iNMF <- function(object,liger.k=30,liger.miniBatch_size = 5000, liger.max.epochs = 5){
+  
+  objName <- deparse(substitute(object))
+  if(!is(object,"SingCellaR_Int")){
+    stop("Need to initialize the SingCellaR_Int object")
+  }
+  ##############################
+  data.set.ids<-unique(object@meta.data$data_set)
+  cells.info<-get_cells_annotation(object)
+  cells.info<-subset(cells.info,IsPassed ==TRUE)
+  cells.dat<-get_umi_count(object)
+  ##############################
+  datasets.mat<-list()
+  datasetname<-c(paste("s",data.set.ids,sep=""))
+  
+  for(i in 1:length(data.set.ids)){
+    my.cells<-subset(cells.info,data_set==i)
+    each.set.m<-cells.dat[,colnames(cells.dat) %in% as.character(my.cells$Cell)]
+    datasets.mat[[datasetname[i]]]<-as.matrix(each.set.m)
+  }
+  #########Liger integration#####
+  print("This process will take time and requires large RAM depending on the number of cells in your integration.")
+  my.liger <- createLiger(datasets.mat)
+  my.liger <- rliger::normalize(my.liger)
+  ###############################
+  my.liger <- rliger::selectGenes(my.liger, var.thresh = 0.2, alpha.thresh=0.90, do.plot = F)
+  my.liger <- rliger::scaleNotCenter(my.liger)
+  
+  my.liger <- rliger::online_iNMF(my.liger, k = liger.k, miniBatch_size = liger.miniBatch_size, max.epochs = liger.max.epochs)
+  my.liger <- quantile_norm(my.liger)
+  ###############################
+  object@Liger.embeddings<-my.liger@H.norm
+  assign(objName,object,envir=parent.frame())
+  invisible(1)
+  print("Liger analysis is done!.")
+}
