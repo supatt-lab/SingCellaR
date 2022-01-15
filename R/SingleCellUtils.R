@@ -216,10 +216,11 @@ runLISI <- function(lisi_label1="donor",lisi_label2="CellType",
   z<-lisi.score
   colnames(z)<-c("iLISI","cLISI")
   z$method=rownames(z)
+  ilisi.max<-max(z$iLISI)
   
   if(IsShowPlot==TRUE){
     ggplot(z,aes(x=cLISI,y=iLISI,color = method,shape=method)) +
-      geom_point(size=point.size) +theme_bw()
+      geom_point(size=point.size) +ylim(1, ilisi.max) +theme_bw()
   }else{
     return(z)
   }
