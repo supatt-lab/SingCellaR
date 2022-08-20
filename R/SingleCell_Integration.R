@@ -465,7 +465,10 @@ runCombat<-function(object,use.reduced_dim=T,
       res.nnmf<-get_nnmf.result(object)
       my.embeddings<-t(res.nnmf$H)[,1:n.dims.use]
     }
-    combat_embeddings = sva::ComBat(dat= t(my.embeddings), batch=batch, par.prior=TRUE, prior.plots=FALSE)
+    combat_embeddings = sva::ComBat(dat= t(my.embeddings), 
+                                    batch=batch, par.prior=TRUE, 
+                                    prior.plots=FALSE)
+    
     object@Combat.embeddings<-t(combat_embeddings)
     print("Combat analysis is done!")
     print("The batch-free embeddings is now in the Combat.embeddings slot!")
@@ -476,7 +479,9 @@ runCombat<-function(object,use.reduced_dim=T,
     #####################################
     my.select.data<-get_normalized_umi(object)
     SM<-log1p(my.select.data[rownames(my.select.data) %in% rownames(selected.genes),as.character(cells.used$Cell)])
-    object@regressout_matrix = as.big.matrix(sva::ComBat(dat= as.matrix(SM), batch=batch, par.prior=TRUE, prior.plots=FALSE))
+    object@regressout_matrix = sva::ComBat(dat= as.matrix(SM), 
+                                           batch=batch, par.prior=TRUE, 
+                                           prior.plots=FALSE)
     print("Combat analysis is done!")
     print("The batch-free matrix is now in the regressout_matrix slot!")
     print("Please continue PCA analysis with 'use.regressout.data=T'.")
