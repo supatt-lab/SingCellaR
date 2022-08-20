@@ -492,7 +492,8 @@ runCombat<-function(object,use.reduced_dim=T,
 #' @param  n.dims.use The number of PCA dimensions used for the input for harmony. Default 30
 #' @param  fGSEA.minSize The cutoff minimum number of genes in each gene set. Gene set that contains the number of genes lower than this number will be excluded. Default 10
 #' @param  fGSEA.maxSize The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 500
-#' @param  fGSEA.eps The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10
+#' @param  fGSEA.eps The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 0
+#' @param  fGSEA.nPermSimple The number of permutations in the simple fgsea implementation for preliminary estimation of P-values.
 #' @param  hcl.height.cutoff The cutree cutoff value for hierarchical clustering. Default 0.25
 #' @param  covariates The unwanted source of variations (e.g. batch, sample_id, etc).
 #' @param  harmony.sigma The harmony sigma parameter. Default 0.1
@@ -506,10 +507,12 @@ runCombat<-function(object,use.reduced_dim=T,
 #' @export 
 #' 
 
-runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.maxSize=500,fGSEA.eps = 1e-10,
+runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.maxSize=500,
+                                  fGSEA.eps = 0,fGSEA.nPermSimple=1000,
                                   hcl.height.cutoff=0.25,covariates=c("data_set"),harmony.sigma = 0.1,
-                                  harmony.tau = 0,harmony.block.size = 0.05,harmony.max.iter = 10,harmony.max.iter.cluster = 20,
-                                  harmony.epsilon.cluster = 1e-05,harmony.epsilon.harmony = 1e-04,n.seed=1){
+                                  harmony.tau = 0,harmony.block.size = 0.05,harmony.max.iter = 10,
+                                  harmony.max.iter.cluster = 20,harmony.epsilon.cluster = 1e-05,
+                                  harmony.epsilon.harmony = 1e-04,n.seed=1){
   
   objName <- deparse(substitute(object))
   if(!is(object,"SingCellaR")){
@@ -567,7 +570,8 @@ runSupervised_Harmony <- function(object,n.dims.use=30,fGSEA.minSize=10,fGSEA.ma
                         minSize=gsea.minSize,
                         maxSize=gsea.maxSize,
                         eps=fGSEA.eps,
-                        scoreType = "post")
+                        scoreType = "pos",
+                        nPermSimple = fGSEA.nPermSimple)
       
       fgseaRes<-fgseaRes[fgseaRes$ES > 0]
       fgseaRes$cluster<-my.title

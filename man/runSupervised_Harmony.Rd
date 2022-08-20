@@ -9,7 +9,8 @@ runSupervised_Harmony(
   n.dims.use = 30,
   fGSEA.minSize = 10,
   fGSEA.maxSize = 500,
-  fGSEA.eps = 1e-10,
+  fGSEA.eps = 0,
+  fGSEA.nPermSimple = 1000,
   hcl.height.cutoff = 0.25,
   covariates = c("data_set"),
   harmony.sigma = 0.1,
@@ -31,7 +32,9 @@ runSupervised_Harmony(
 
 \item{fGSEA.maxSize}{The cutoff maxiumum number of genes in each gene set. Gene set that contains the number of genes higher than this number will be excluded. Default 500}
 
-\item{fGSEA.eps}{The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 1e-10}
+\item{fGSEA.eps}{The eps paramenter for fgsea, this parameter sets the boundary for calculating the p value. Default 0}
+
+\item{fGSEA.nPermSimple}{The number of permutations in the simple fgsea implementation for preliminary estimation of P-values.}
 
 \item{hcl.height.cutoff}{The cutree cutoff value for hierarchical clustering. Default 0.25}
 
