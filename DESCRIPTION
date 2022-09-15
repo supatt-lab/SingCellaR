@@ -6,7 +6,7 @@ Author: Supat Thongjuea, MRC Weatherall Institute of Molecular Medicine Universi
 Maintainer: Supat Thongjuea <supat.thongjuea@imm.ox.ac.uk> or <supat.thongjuea@gmail.com>
 Description: SingCellaR provides standard functionalities for analyzing scRNA-seq datasets.
 License: GPL-3
-Depends: R (>= 4.2.1)
+Depends: R (>= 4.2.0)
 Imports: SingleCellExperiment, SummarizedExperiment, Matrix,
         LinkedMatrix, irlba, Rtsne, reticulate, ggplot2, gridExtra,
         cccd, ggpubr, statmod, uwot, data.table, reshape2, pbapply,
