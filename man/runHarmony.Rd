@@ -9,6 +9,7 @@ runHarmony(
   n.dims.use = 30,
   covariates = c("data_set"),
   harmony.theta = NULL,
+  harmony.lambda = NULL,
   harmony.sigma = 0.1,
   harmony.nclust = NULL,
   harmony.tau = 0,
@@ -28,6 +29,8 @@ runHarmony(
 \item{covariates}{The unwanted source of variations (e.g. batch, sample_id, etc).}
 
 \item{harmony.theta}{The harmony theta parameter. Deafult NULL. This is the diversity clustering penalty parameter. Specify for each variable in vars_use Default theta=2. theta=0 does not encourage any diversity. Larger values of theta result in more diverse clusters.}
+
+\item{harmony.lambda}{The harmony lambda parameter. Deafult NULL. Ridge regression penalty parameter. Specify for each variable in group.by.vars. Default lambda=1. Lambda must be strictly positive. Smaller values result in more aggressive correction.}
 
 \item{harmony.sigma}{The harmony sigma parameter. Default 0.1. This parameter is the width of soft kmeans clusters. Sigma scales the distance from a cell to cluster centroids. Larger values of sigma result in cells assigned to more clusters. Smaller values of sigma make soft kmeans cluster approach hard clustering.}
 
