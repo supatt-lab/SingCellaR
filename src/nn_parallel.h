@@ -23,28 +23,28 @@
 
 #include "matrix.h"
 
-typedef AnnoyIndexSingleThreadedBuildPolicy AnnoyIndexThreadedBuildPolicy;
+typedef Annoy::AnnoyIndexSingleThreadedBuildPolicy AnnoyIndexThreadedBuildPolicy;
 
 struct UwotAnnoyEuclidean {
-  using Distance = Euclidean;
+  using Distance = Annoy::Euclidean;
   using S = int32_t;
   using T = float;
 };
 
 struct UwotAnnoyCosine {
-  using Distance = Angular;
+  using Distance = Annoy::Angular;
   using S = int32_t;
   using T = float;
 };
 
 struct UwotAnnoyManhattan {
-  using Distance = Manhattan;
+  using Distance = Annoy::Manhattan;
   using S = int32_t;
   using T = float;
 };
 
 struct UwotAnnoyHamming {
-  using Distance = Hamming;
+  using Distance = Annoy::Hamming;
   using S = int32_t;
   using T = uint64_t;
 };
@@ -59,7 +59,7 @@ template <typename UwotAnnoyDistance> struct NNWorker {
   std::vector<int> idx;
   std::vector<typename UwotAnnoyDistance::T> dists;
 
-  AnnoyIndex<typename UwotAnnoyDistance::S, typename UwotAnnoyDistance::T,
+  Annoy::AnnoyIndex<typename UwotAnnoyDistance::S, typename UwotAnnoyDistance::T,
              typename UwotAnnoyDistance::Distance, Kiss64Random, AnnoyIndexThreadedBuildPolicy>
       index;
 
