@@ -17,6 +17,7 @@ LinkingTo: Rcpp, RcppArmadillo, RcppAnnoy
 Collate: 'RcppExports.R' 'Import.R' 'SingleCellClasses.R'
         'SingleCellGenerics.R' 'SingleCellPlots.R' 'SingleCellRNASeq.R'
         'SingleCellUtils.R' 'SingleCell_Integration.R' 'zzz.R'
+biocViews: Preprocessing, Sequencing
 RoxygenNote: 7.2.1
 NeedsCompilation: yes
 Encoding: UTF-8
