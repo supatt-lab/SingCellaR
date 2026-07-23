@@ -1503,7 +1503,8 @@ runFA2_ForceDirectedGraph <- function(object,dim_reduction_method=c("pca","nnmf"
   ####make igraph#########
   relations <- as.data.frame(links)
   colnames(relations)<- c("from","to","weight")
-  G.igraph <- graph.data.frame(relations, directed=FALSE)
+  #G.igraph <- graph.data.frame(relations, directed=FALSE)
+  G.igraph <- graph_from_data_frame(relations, directed=FALSE)
   G.igraph <- igraph::simplify(G.igraph)
   ###############################
   print("Processing fa2..")
